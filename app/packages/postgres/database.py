@@ -5,8 +5,7 @@ from aiohttp.web_app import Application
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.web.base.base_accessor import BaseAccessor
-from app.web.logger import logger
+from app.packages.logger import logger
 
 
 class AsyncSessionType:
@@ -17,10 +16,9 @@ class AsyncSessionType:
         ...
 
 
-class Database(BaseAccessor):
-    def __init__(self, app: Application):
-        super().__init__(app)
-        self.dsn: str = app['config'].database_dsn
+class Database:
+    def __init__(self, database_dsn: str):
+        self.dsn: str = database_dsn
         self.engine: AsyncEngine = create_async_engine(
             url=self.dsn,
             future=True,  # remove after upgrading to SQLAlchemy 2.0

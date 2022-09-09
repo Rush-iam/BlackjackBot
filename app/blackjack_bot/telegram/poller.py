@@ -1,4 +1,4 @@
-from asyncio import CancelledError, Task, create_task, shield, sleep, wait_for
+from asyncio import CancelledError, shield, sleep
 from functools import partial
 from json import JSONDecodeError
 from typing import Any, Awaitable, Callable, cast
@@ -6,8 +6,8 @@ from typing import Any, Awaitable, Callable, cast
 from aiohttp import ClientResponse, ClientSession, ClientTimeout, ContentTypeError
 from aiohttp.web_exceptions import HTTPOk
 
-from app.web.config import TelegramConfig
-from app.web.logger import logger
+from app.packages.config import TelegramConfig
+from app.packages.logger import logger
 
 from .constants import TelegramMethod
 from .dtos import TelegramResponse, Update, UpdateConfig
@@ -24,22 +24,8 @@ class Poller:
         self.config: TelegramConfig = config
         self.session: ClientSession = session
         self.handler: Callable[[list[Update]], Awaitable[None]] = updates_handler
-        self.poll_task: Task[None] | None = None
 
-    async def start(self) -> None:
-        poll_config = UpdateConfig(
-            timeout=self.config.poll_timeout,
-            allowed_updates=['message', 'callback_query'],
-        )
-        self.poll_task = create_task(self._poll_task_loop(poll_config))
-
-    async def stop(self) -> None:
-        if self.poll_task:
-            self.poll_task.cancel()
-            await wait_for(self.poll_task, 5)
-            self.poll_task = None
-
-    async def _poll_task_loop(self, poll_config: UpdateConfig) -> None:
+    async def run_loop(self, poll_config: UpdateConfig) -> None:
         config = poll_config.dict(exclude_unset=True)
         get_updates_request = partial(
             self.session.get,
@@ -47,20 +33,24 @@ class Poller:
             params=config,
             timeout=ClientTimeout(total=self.config.poll_timeout * 2),
         )
-        logger.info('Poller task started')
+        errors_count = 0
+        logger.info('Telegram Poller started')
         while True:
             try:
                 async with get_updates_request() as response:
                     last_update_id = await shield(self._handle_response(response))
                     if last_update_id:
                         config['offset'] = last_update_id + 1
+                errors_count = 0
             except CancelledError:
-                logger.info('Got Cancel signal')
                 break
             except Exception as exc:  # pylint: disable=W0703
                 logger.exception(exc)
+                errors_count += 1
+                if errors_count >= 5:
+                    raise
                 await sleep(5)
-        logger.info('Poller task stopped')
+        logger.info('Telegram Poller stopped')
 
     async def _handle_response(self, response: ClientResponse) -> int | None:
         if response.status != HTTPOk.status_code:

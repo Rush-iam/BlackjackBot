@@ -2,7 +2,7 @@ import itertools
 
 from aiohttp.web_app import Application
 
-from app.admin import routes as admin_routes
+from app.admin_api.admin import routes as admin_routes
 
 
 def setup_routes(app: Application) -> None:

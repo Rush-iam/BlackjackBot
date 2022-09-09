@@ -1,6 +1,6 @@
 from aiohttp.web import run_app
 
-from app.web.app import create_app
+from app.admin_api.web.app import create_app
 
 
 app = create_app()

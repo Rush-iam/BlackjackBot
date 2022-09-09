@@ -5,11 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.exc import IntegrityError
 
-from app.admin.dtos import Admin
-from app.admin.models import AdminModel
-from app.store.database.accessor import DatabaseAccessor
-from app.web.config import Config
-from app.web.logger import logger
+from app.admin_api.admin.dtos import Admin
+from app.admin_api.admin.models import AdminModel
+from app.packages.config import Config
+from app.packages.logger import logger
+from app.packages.postgres.accessor import DatabaseAccessor
 
 
 class AdminAccessor(DatabaseAccessor):

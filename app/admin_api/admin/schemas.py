@@ -1,6 +1,6 @@
 from marshmallow import fields
 
-from app.web.base.base_schema import BaseSchema
+from app.admin_api.web.base.base_schema import BaseSchema
 
 
 class AdminSchema(BaseSchema):

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Unicode
 
-from app.store.database.metadata import BaseMetadata
+from app.packages.postgres.metadata import BaseMetadata
 
 
 class AdminModel(BaseMetadata):

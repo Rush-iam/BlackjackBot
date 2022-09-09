@@ -5,8 +5,9 @@ from aiohttp.web import Application
 from aiohttp_apispec import setup_aiohttp_apispec
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
-from .config import get_config
-from .logger import setup_logging
+from app.packages.config import get_config
+from app.packages.logger import setup_logging
+
 from .middlewares import setup_middlewares
 from .routes import setup_routes
 from .store import setup_store

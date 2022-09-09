@@ -10,11 +10,11 @@ jobs:
       TESTS_DIR: tests
       ADMIN__EMAIL: test@test.com
       ADMIN__PASSWORD: admin
-      TELEGRAM__TOKEN: abc
       APP__COOKIE_SECRET_KEY: 32_characters_secret_key_abcdefg
       DATABASE__USERNAME: postgres
       DATABASE__PASSWORD: postgres
       DATABASE__NAME: postgres
+      TELEGRAM__TOKEN: abc
     services:
       postgres:
         image: postgres

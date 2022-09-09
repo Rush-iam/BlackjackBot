@@ -2,23 +2,19 @@ from functools import partial
 from typing import Any, Awaitable, Callable, cast
 
 from aiohttp import ClientSession, ClientTimeout
-from aiohttp.web_app import Application
 
-from app.web.base.base_accessor import BaseAccessor
-from app.web.config import TelegramConfig
+from app.packages.config import Config, TelegramConfig
 
 from .constants import TelegramMethod
-from .dtos import Message, MessageConfig, TelegramResponse, Update
+from .dtos import Message, MessageConfig, TelegramResponse, Update, UpdateConfig
 from .poller import Poller
 from .utils import build_query
 
 
-class TelegramAccessor(BaseAccessor):
-    def __init__(self, app: Application):
-        super().__init__(app)
-        self.config: TelegramConfig = app['config'].telegram
+class TelegramAccessor:
+    def __init__(self, config: Config):
+        self.config: TelegramConfig = config.telegram
         self.session: ClientSession | None = None
-        self.poller: Poller | None = None
         self.updates_handler: Callable[[list[Update]], Awaitable[None]] | None = None
 
     def set_updates_handler(
@@ -26,22 +22,21 @@ class TelegramAccessor(BaseAccessor):
     ) -> None:
         self.updates_handler = updates_handler
 
-    async def connect(self, _: Application) -> None:
+    async def run_loop(self) -> None:
         self.session = ClientSession()
         if self.updates_handler is None:
             raise Exception('TelegramAccessor: connect: updates_handler not set')
-        self.poller = Poller(
+        poller = Poller(
             config=self.config,
             session=self.session,
             updates_handler=self.updates_handler,
         )
-        await self.poller.start()
-
-    async def disconnect(self, app: Application) -> None:
-        if self.poller:
-            await self.poller.stop()
-        if self.session and not self.session.closed:
-            await self.session.close()
+        poll_config = UpdateConfig(
+            timeout=self.config.poll_timeout,
+            allowed_updates=['message', 'callback_query'],
+        )
+        await poller.run_loop(poll_config)
+        await self.session.close()
 
     async def send_message(
         self,

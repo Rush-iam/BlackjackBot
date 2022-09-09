@@ -10,10 +10,10 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy_utils import create_database, drop_database
 
-from app.store.database.database import Database
-from app.store.database.metadata import BaseMetadata
-from app.web.config import Config, get_config
-from app.web.store import Store
+from app.admin_api.web.store import Store
+from app.packages.config import Config, get_config
+from app.packages.postgres.database import Database
+from app.packages.postgres.metadata import BaseMetadata
 
 
 @pytest.fixture(scope='session')

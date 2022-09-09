@@ -4,10 +4,10 @@ import pytest
 from aiohttp.test_utils import TestClient
 from aiohttp.web_app import Application
 
-from app.admin.dtos import Admin
-from app.web.app import create_app
-from app.web.config import Config
-from app.web.store import Store
+from app.admin_api.admin.dtos import Admin
+from app.admin_api.web.app import create_app
+from app.admin_api.web.store import Store
+from app.packages.config import Config
 
 
 @pytest.fixture

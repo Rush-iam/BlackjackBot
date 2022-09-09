@@ -11,8 +11,8 @@ from aiohttp.web_response import StreamResponse, json_response
 from aiohttp_apispec import validation_middleware
 from aiohttp_session import get_session
 
-from app.admin.dtos import Admin
-from app.store.database.middleware import database_error_handling_middleware
+from app.admin_api.admin.dtos import Admin
+from app.packages.postgres.middleware import database_error_handling_middleware
 
 from .base.base_view import AuthView
 

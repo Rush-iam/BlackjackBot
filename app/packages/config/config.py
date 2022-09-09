@@ -13,7 +13,7 @@ from pydantic import (
 )
 from sqlalchemy.engine.url import URL
 
-from .logger import logger
+from app.packages.logger import logger
 
 
 DEFAULT_CONFIG_FILE = os.getenv('CONFIG_FILE', 'config.env')
