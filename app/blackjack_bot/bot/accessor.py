@@ -6,7 +6,7 @@ from app.packages.logger import logger
 class BotAccessor:
     def __init__(self, telegram: TelegramAccessor):
         self.telegram = telegram
-        self.telegram.set_updates_handler(self.handle_updates)
+        self.telegram.updates_handler = self.handle_updates
 
     async def run(self) -> None:
         await self.telegram.run_loop()
@@ -21,7 +21,7 @@ class BotAccessor:
                 logger.info('%s: %s', message.from_.username, message.text)
                 message = await self.telegram.send_message(
                     message.from_.id,
-                    message.text if message.text else 'ok!',
+                    message.text or 'ok!',
                 )
             _ = message
         elif query := update.callback_query:

@@ -13,30 +13,35 @@ from .utils import build_query
 
 class TelegramAccessor:
     def __init__(self, config: Config):
-        self.config: TelegramConfig = config.telegram
-        self.session: ClientSession | None = None
-        self.updates_handler: Callable[[list[Update]], Awaitable[None]] | None = None
+        self._config: TelegramConfig = config.telegram
+        self._session: ClientSession | None = None
+        self._updates_handler: Callable[[list[Update]], Awaitable[None]] | None = None
 
-    def set_updates_handler(
+    @property
+    def updates_handler(self) -> Callable[[list[Update]], Awaitable[None]] | None:
+        return self._updates_handler
+
+    @updates_handler.setter
+    def updates_handler(
         self, updates_handler: Callable[[list[Update]], Awaitable[None]]
     ) -> None:
-        self.updates_handler = updates_handler
+        self._updates_handler = updates_handler
 
     async def run_loop(self) -> None:
-        self.session = ClientSession()
-        if self.updates_handler is None:
+        self._session = ClientSession()
+        if self._updates_handler is None:
             raise Exception('TelegramAccessor: connect: updates_handler not set')
         poller = Poller(
-            config=self.config,
-            session=self.session,
-            updates_handler=self.updates_handler,
+            config=self._config,
+            session=self._session,
+            updates_handler=self._updates_handler,
         )
         poll_config = UpdateConfig(
-            timeout=self.config.poll_timeout,
+            timeout=self._config.poll_timeout,
             allowed_updates=['message', 'callback_query'],
         )
         await poller.run_loop(poll_config)
-        await self.session.close()
+        await self._session.close()
 
     async def send_message(
         self,
@@ -44,13 +49,13 @@ class TelegramAccessor:
         text: str,
         **kwargs: Any,
     ) -> Message | None:
-        if not self.session:
+        if not self._session:
             raise Exception('TelegramAccessor: send_message: session not available')
 
         message = self._new_message(chat_id, text, **kwargs)
         send_message_request = partial(
-            self.session.post,
-            url=build_query(self.config.token, TelegramMethod.sendMessage),
+            self._session.post,
+            url=build_query(self._config.token, TelegramMethod.sendMessage),
             json=message.dict(exclude_unset=True),
             timeout=ClientTimeout(total=5),
         )
