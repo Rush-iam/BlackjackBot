@@ -33,8 +33,9 @@ class AdminConfig(BaseModel):
     password: AtLeastOneCharStr
 
 
-class BotConfig(BaseModel):
+class TelegramConfig(BaseModel):
     token: AtLeastOneCharStr
+    poll_timeout: int = 10
 
 
 class DatabaseConfig(BaseModel):
@@ -59,7 +60,7 @@ class Config(BaseSettings):
 
     app: AppConfig
     admin: AdminConfig
-    bot: BotConfig
+    telegram: TelegramConfig
     database: DatabaseConfig
 
     class Config:

@@ -90,9 +90,11 @@ ignored-classes='sqlalchemy.orm.session.sessionmaker'
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
+  "C0103",  # class constant name doesn't conform to UPPER_CASE
   "C0114",  # missing-module-docstring
   "C0115",  # missing-class-docstring (for api routes)
   "C0116",  # missing-function-docstring
+  "E1133",  # non-iterable value is used in an iterating context
   "R0903",  # too-few-public-methods (for sqlalchemy tables and pydantic classes)
   "W0511",  # fix me / TO DO checks
 ]
