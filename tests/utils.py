@@ -2,7 +2,7 @@ from sqlalchemy import inspect
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from app.store.database.database import Database
+from app.packages.postgres.database import Database
 
 
 def use_inspector(connection: Connection) -> list[str]:

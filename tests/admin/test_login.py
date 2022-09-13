@@ -2,8 +2,8 @@ import pytest
 from aiohttp.test_utils import TestClient
 from aiohttp.web_exceptions import HTTPMethodNotAllowed, HTTPOk, HTTPUnprocessableEntity
 
-from app.admin.dtos import Admin
-from app.web.config import Config
+from app.admin_api.admin.dtos import Admin
+from app.packages.config import Config
 
 
 class TestAdminLoginView:

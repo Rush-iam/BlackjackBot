@@ -1,4 +1,6 @@
 PROJECT_DIR			= app
+APP_API				= $(PROJECT_DIR)/admin_api
+APP_BOT				= $(PROJECT_DIR)/blackjack_bot
 TESTS_DIR			= tests
 DB_CONTAINER_NAME	= postgres_db
 
@@ -59,8 +61,10 @@ migrate:
 revision:
 	poetry run alembic revision --autogenerate -m $(args)
 
-run:
-	poetry run adev runserver $(PROJECT_DIR) --port 8080 --livereload
+run_api:
+	poetry run adev runserver $(APP_API) --port 8080 --livereload
+run_bot:
+	poetry run python $(APP_BOT)/main.py
 
 test:
 	poetry run pytest

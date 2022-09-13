@@ -4,8 +4,8 @@ import pytest
 from aiohttp.test_utils import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.admin.dtos import Admin
-from app.admin.models import AdminModel
+from app.admin_api.admin.dtos import Admin
+from app.admin_api.admin.models import AdminModel
 
 
 @pytest.fixture

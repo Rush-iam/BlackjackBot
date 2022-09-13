@@ -2,7 +2,7 @@ from typing import Any
 
 from aiohttp.web_urldispatcher import View
 
-from app.web.store import Store
+from app.admin_api.web.store import Store
 
 
 class AppView(View):

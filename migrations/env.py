@@ -8,9 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import context
 
-from app.store.database.metadata import BaseMetadata
-from app.web import store  # noqa
-from app.web.config import get_config
+from app.packages.postgres.metadata import BaseMetadata
+from app.packages.config import get_config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

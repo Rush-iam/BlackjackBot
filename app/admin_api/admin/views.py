@@ -3,8 +3,8 @@ from aiohttp.web_response import json_response
 from aiohttp_apispec import docs, json_schema, response_schema
 from aiohttp_session import new_session
 
-from app.web.base.base_view import AppView, AuthView
-from app.web.logger import logger
+from app.admin_api.web.base.base_view import AppView, AuthView
+from app.packages.logger import logger
 
 from .dtos import Admin
 from .schemas import AdminLoginSchema, AdminSchema

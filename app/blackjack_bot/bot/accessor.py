@@ -1,12 +1,15 @@
-from app.store.telegram.accessor import TelegramAccessor
-from app.store.telegram.dtos import Update
-from app.web.logger import logger
+from app.blackjack_bot.telegram.accessor import TelegramAccessor
+from app.blackjack_bot.telegram.dtos import Update
+from app.packages.logger import logger
 
 
 class BotAccessor:
     def __init__(self, telegram: TelegramAccessor):
         self.telegram = telegram
         self.telegram.updates_handler = self.handle_updates
+
+    async def run(self) -> None:
+        await self.telegram.run_loop()
 
     async def handle_updates(self, updates: list[Update]) -> None:
         for update in updates:

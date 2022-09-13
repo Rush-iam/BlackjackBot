@@ -1,20 +1,18 @@
 from aiohttp.web_app import Application
 
-from app.store.admin.accessor import AdminAccessor
-from app.store.bot.accessor import BotAccessor
-from app.store.database.database import Database
-from app.store.telegram.accessor import TelegramAccessor
+from app.admin_api.admin.accessor import AdminAccessor
+from app.packages.postgres.database import Database
 
 
 class Store:
     def __init__(self, app: Application):
-        self.db = Database(app)
+        self.db = Database(app['config'].database_dsn)
+        app.on_startup.append(self.db.connect)
+        app.on_cleanup.append(self.db.disconnect)
+
         self.admins = AdminAccessor(self.db)
         app.on_startup.append(self.admins.create_default_admin)
         # TODO: move admin creation to migration?
-
-        self.telegram = TelegramAccessor(app)
-        self.bot = BotAccessor(self.telegram)
 
 
 def setup_store(app: Application) -> None:

@@ -2,7 +2,7 @@ from hashlib import sha256
 
 from pydantic import SecretStr
 
-from app.web.base.base_dto import DatabaseItem
+from app.admin_api.web.base.base_dto import DatabaseItem
 
 
 class Admin(DatabaseItem):
