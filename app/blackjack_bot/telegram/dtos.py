@@ -59,7 +59,17 @@ class Chat(BaseModel):
     # location: ChatLocation | None = None
 
 
-class MessageConfig(BaseModel):
+class MessageEntity(BaseModel):
+    type: MessageEntityType
+    offset: int
+    length: int
+    url: str | None = None  # 'text_link' only
+    user: User | None = None  # 'text_mention' only
+    language: str | None = None  # 'pre' only
+    custom_emoji_id: str | None = None  # 'custom_emoji' only
+
+
+class SendMessageRequest(BaseModel):
     chat_id: int | str
     text: Annotated[str, constr(min_length=1, max_length=4096)]
     parse_mode: str | None = None
@@ -70,7 +80,28 @@ class MessageConfig(BaseModel):
     reply_to_message_id: int | None = None
     allow_sending_without_reply: bool | None = None
     # reply_markup: (
-    #     InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply
+    #     InlineKeyboardMarkup |
+    #     ReplyKeyboardMarkup |
+    #     ReplyKeyboardRemove |
+    #     ForceReply |
+    #     None
+    # ) = None
+
+
+class EditMessageTextRequest(BaseModel):
+    text: Annotated[str, constr(min_length=1, max_length=4096)]
+    chat_id: int | str | None = None
+    message_id: int | None = None
+    inline_message_id: str | None = None
+    parse_mode: str | None = None
+    entities: list[MessageEntity] | None = None
+    disable_web_page_preview: bool | None = None
+    # reply_markup: (
+    #     InlineKeyboardMarkup |
+    #     ReplyKeyboardMarkup |
+    #     ReplyKeyboardRemove |
+    #     ForceReply |
+    #     None
     # ) = None
 
 
@@ -94,7 +125,7 @@ class Message(BaseModel):
     media_group_id: str | None = None
     author_signature: str | None = None
     text: str | None = None
-    # entities: list[MessageEntity] | None = None
+    entities: list[MessageEntity] | None = None
     # animation: Animation | None = None
     # audio: Audio | None = None
     # document: Document | None = None
@@ -136,16 +167,6 @@ class Message(BaseModel):
     # reply_markup: InlineKeyboardMarkup | None = None
 
 
-class MessageEntity:
-    type: MessageEntityType
-    offset: int
-    length: int
-    url: str | None = None  # 'text_link' only
-    user: User | None = None  # 'text_mention' only
-    language: str | None = None  # 'pre' only
-    custom_emoji_id: str | None = None  # 'custom_emoji' only
-
-
 class CallbackQuery(BaseModel):
     id: str
     from_: User = Field(..., alias='from')
@@ -156,7 +177,7 @@ class CallbackQuery(BaseModel):
     game_short_name: str | None = None
 
 
-class UpdateConfig(BaseModel):
+class UpdateRequest(BaseModel):
     offset: int | None = None
     limit: int | None = None
     timeout: int | None = None

@@ -1,5 +1,6 @@
 import asyncio
 
+from app.blackjack_bot.blackjack.lobby import Lobby
 from app.blackjack_bot.bot.accessor import BotAccessor
 from app.blackjack_bot.telegram.accessor import TelegramAccessor
 from app.packages.config import get_config
@@ -8,12 +9,15 @@ from app.packages.logger import setup_logging
 
 
 async def run_app() -> None:
-    setup_graceful_shutdown()
     setup_logging()
+    setup_graceful_shutdown()
 
     config = get_config()
     telegram = TelegramAccessor(config)
     bot = BotAccessor(telegram)
+
+    blackjack_lobby = Lobby(bot)
+    bot.register_command('/start', blackjack_lobby.new_game_router)
 
     await bot.run()
 
