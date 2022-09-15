@@ -10,6 +10,7 @@ class TelegramMethod(GeneratedStrEnum):
     getUpdates = auto()
     sendMessage = auto()
     editMessageText = auto()
+    answerCallbackQuery = auto()
 
 
 class MessageEntityType(GeneratedStrEnum):

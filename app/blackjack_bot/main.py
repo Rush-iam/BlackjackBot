@@ -17,7 +17,6 @@ async def run_app() -> None:
     bot = BotAccessor(telegram)
 
     blackjack_lobby = Lobby(bot)
-    bot.register_command('/start', blackjack_lobby.new_game_router)
 
     await bot.run()
 

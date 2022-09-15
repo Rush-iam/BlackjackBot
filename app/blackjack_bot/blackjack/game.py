@@ -3,6 +3,7 @@ from datetime import datetime
 from enum import auto
 from typing import Callable, Awaitable
 
+from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard
 from app.packages.enum_generator import GeneratedStrEnum
 from app.packages.logger import logger
 
@@ -24,10 +25,14 @@ class GameState(GeneratedStrEnum):
 
 class Game:
     def __init__(
-        self, game_id: int | str, message_editor: Callable[[str], Awaitable[None]]
+        self,
+        game_id: int | str,
+        message_editor: Callable[[str, InlineKeyboard | None], Awaitable[None]],
     ):
         self.id: int | str = game_id
-        self.message_editor: Callable[[str], Awaitable[None]] = message_editor
+        self.message_editor: Callable[[str, InlineKeyboard | None], Awaitable[None]] = (
+            message_editor
+        )
         self.start_time: datetime = datetime.now()
         self.end_time: datetime | None = None
         self.tasks_ref: set[Task] = set()  # protects Task from garbage collector
@@ -55,13 +60,17 @@ class Game:
     async def next_state_transition(self) -> None:
         logger.info('[%s] %s -> %s', self.id, self.state, self.next_states[0][0])
         self.state, self.state_handler = self.next_states.pop(0)
-        self.state_handler.start()
+        await self.state_handler.start()
         await self.render_message()
 
-    async def handle_event(self, event) -> None:
-        is_updated = self.state_handler.handle(event)
+    async def handle_event(self, player_id: int, data: str) -> str | None:
+        if data not in self.state_handler.query_commands:
+            logger.warning('no handler for query data: %s', data)
+            return None
+        is_updated, answer = self.state_handler.handle(player_id, data)
         if is_updated:
             await self.render_message()
+        return answer
 
     async def finish_game(self) -> None:
         while self.next_states:
@@ -74,7 +83,9 @@ class Game:
         logger.info('[%s] %s', self.id, title)
         lines = '\n'.join(self.state_handler.render_lines())
         message_text = f'🃏 {title}\n\n{lines}'
-        await self.message_editor(message_text)
+
+        keyboard = self.state_handler.render_keyboard()
+        await self.message_editor(message_text, keyboard)
 
     def run_after(self, seconds: int, function: Callable[[], Awaitable[None]]) -> Task:
         async def _run_after() -> None:

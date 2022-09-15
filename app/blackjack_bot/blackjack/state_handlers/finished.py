@@ -6,11 +6,11 @@ from .base import StateHandler
 class FinishedHandler(StateHandler):
     title: str = 'Игра окончена'
 
-    def start(self) -> None:
+    async def start(self) -> None:
         for player in self.game.players:
             player.state = PlayerState.idle
 
-    def handle(self, event) -> bool:
+    def handle(self, player_id: int, data: str) -> tuple[bool, str | None]:
         pass
 
     def render_lines(self) -> list[str]:

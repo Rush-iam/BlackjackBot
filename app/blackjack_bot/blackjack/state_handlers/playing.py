@@ -10,14 +10,15 @@ class PlayingHandler(StateHandler):
     title: str = 'Blackjack'
     timer: int = 10
     timer_task: Task | None = None
+    query_commands: list[str] = ['hit', 'stand']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.current_player: Player | None = None
 
-    def start(self) -> None:
+    async def start(self) -> None:
         self.game.dealer.hand.add_card(self.game.deck.take_random_card())
-        self.next_round_transition()
+        await self.next_round_transition()
 
     async def finish(self):
         dealer_min, dealer_max = self.game.dealer.hand.blackjack_values
@@ -43,26 +44,24 @@ class PlayingHandler(StateHandler):
 
         await self.game.next_state_transition()
 
-    def handle(self, event) -> bool:
-        player_id = 123
-
+    def handle(self, player_id: int, data: str) -> tuple[bool, str | None]:
         if self.current_player.id != player_id:
-            return False
+            return False, 'Это не Ваш ход!'
 
         self.timer_task.cancel()
         player = self.current_player
-        if event == 'hit':
+        if data == 'hit':
             player.hand.add_card(self.game.deck.take_random_card())
             min_value, max_value = player.hand.blackjack_values
             if min_value > 21:
                 player.state = PlayerState.completed
             else:
                 player.state = PlayerState.waiting
-        elif event == 'stand':
+        elif data == 'stand':
             player.state = PlayerState.completed
 
         self.next_player_transition()
-        return True
+        return True, 'Ход сделан'
 
     async def next_round_transition(self) -> None:
         active_players_count = 0

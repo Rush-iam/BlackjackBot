@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field, constr, conbytes
 
 from .constants import MessageEntityType
 
@@ -69,6 +69,22 @@ class MessageEntity(BaseModel):
     custom_emoji_id: str | None = None  # 'custom_emoji' only
 
 
+class InlineKeyboardButton(BaseModel):
+    text: str
+    url: str | None = None
+    callback_data: str | None = Annotated[str, conbytes(min_length=1, max_length=64)]
+    # web_app: WebAppInfo | None = None
+    # login_url: LoginUrl | None = None
+    switch_inline_query: str | None = None
+    switch_inline_query_current_chat: str | None = None
+    # callback_game: CallbackGame | None = None
+    # pay: bool | None = None
+
+
+class InlineKeyboardMarkup(BaseModel):
+    inline_keyboard: list[list[InlineKeyboardButton]]
+
+
 class SendMessageRequest(BaseModel):
     chat_id: int | str
     text: Annotated[str, constr(min_length=1, max_length=4096)]
@@ -79,13 +95,8 @@ class SendMessageRequest(BaseModel):
     protect_content: bool | None = None
     reply_to_message_id: int | None = None
     allow_sending_without_reply: bool | None = None
-    # reply_markup: (
-    #     InlineKeyboardMarkup |
-    #     ReplyKeyboardMarkup |
-    #     ReplyKeyboardRemove |
-    #     ForceReply |
-    #     None
-    # ) = None
+    reply_markup: InlineKeyboardMarkup | None = None
+    # | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply
 
 
 class EditMessageTextRequest(BaseModel):
@@ -96,13 +107,16 @@ class EditMessageTextRequest(BaseModel):
     parse_mode: str | None = None
     entities: list[MessageEntity] | None = None
     disable_web_page_preview: bool | None = None
-    # reply_markup: (
-    #     InlineKeyboardMarkup |
-    #     ReplyKeyboardMarkup |
-    #     ReplyKeyboardRemove |
-    #     ForceReply |
-    #     None
-    # ) = None
+    reply_markup: InlineKeyboardMarkup | None = None
+    # | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply
+
+
+class AnswerCallbackQueryRequest(BaseModel):
+    callback_query_id: str
+    text: str | None = None
+    show_alert: bool | None = None
+    url: str | None = None
+    cache_time: int | None = None
 
 
 class Message(BaseModel):
@@ -164,7 +178,7 @@ class Message(BaseModel):
     # video_chat_ended: VideoChatEnded | None = None
     # video_chat_participants_invited: VideoChatParticipantsInvited | None = None
     # web_app_data: WebAppData | None = None
-    # reply_markup: InlineKeyboardMarkup | None = None
+    reply_markup: InlineKeyboardMarkup | None = None
 
 
 class CallbackQuery(BaseModel):

@@ -13,8 +13,7 @@ from .dtos import (
     TelegramResponse,
     Update,
     UpdateRequest,
-    EditMessageTextRequest,
-)
+    EditMessageTextRequest, InlineKeyboardMarkup, AnswerCallbackQueryRequest, )
 from .poller import Poller
 from .utils import build_query, log_error
 
@@ -57,15 +56,42 @@ class TelegramAccessor:
         return await self._message_request(TelegramMethod.sendMessage, request)
 
     async def edit_message_text(
-        self, chat_id: int | str, message_id: int, text: str, **kwargs: Any
+        self,
+        chat_id: int | str,
+        message_id: int,
+        text: str,
+        reply_markup: InlineKeyboardMarkup | None = None,
+        **kwargs: Any,
     ) -> Message | None:
         request = EditMessageTextRequest(
             chat_id=chat_id,
             message_id=message_id,
             text=text,
+            reply_markup=reply_markup,
             **kwargs,
         )
         return await self._message_request(TelegramMethod.editMessageText, request)
+
+    async def answer_callback_query(
+        self,
+        callback_query_id: str,
+        text: str | None = None,
+        show_alert: bool | None = None,
+        **kwargs: Any,
+    ) -> bool:
+        request = AnswerCallbackQueryRequest(
+            callback_query_id=callback_query_id,
+            text=text,
+            show_alert=show_alert,
+            **kwargs,
+        )
+        method = TelegramMethod.answerCallbackQuery
+        async with self._request(method, request) as response:
+            tg_response = TelegramResponse(**await response.json())
+            if not tg_response.ok:
+                await log_error(response)
+                return False
+            return tg_response.result
 
     async def _message_request(
         self, method: TelegramMethod, request_payload: BaseModel
@@ -84,6 +110,6 @@ class TelegramAccessor:
     ) -> _RequestContextManager:
         return self._session.post(
             url=build_query(self._config.token, method),
-            json=request_payload.dict(exclude_unset=True),
+            json=request_payload.dict(exclude_none=True),
             timeout=ClientTimeout(total=5),
         )
