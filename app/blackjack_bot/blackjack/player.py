@@ -43,4 +43,4 @@ class Player:
         return f'{self.name}: {self.bet}$'
 
     def str_with_cards(self) -> str:
-        return f'{self.name}: {self.hand} ({self.hand.blackjack_best_value})'
+        return f'{self.name} - {self.hand.blackjack_best_value} - {self.hand}'

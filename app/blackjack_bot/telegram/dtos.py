@@ -32,6 +32,13 @@ class User(BaseModel):
     can_read_all_group_messages: bool | None = None
     supports_inline_queries: bool | None = None
 
+    @property
+    def short_name(self) -> str:
+        return (
+            f'{self.first_name} {self.last_name[0]}'
+            if self.last_name else self.first_name
+        )
+
 
 class Chat(BaseModel):
     id: int

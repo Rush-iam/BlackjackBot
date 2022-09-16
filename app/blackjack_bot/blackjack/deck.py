@@ -13,7 +13,9 @@ class Card(NamedTuple):
 
 
 class Deck:
-    ranks: tuple[int | str] = (2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A')
+    ranks: tuple[str] = (
+        '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🤵', '👰‍', '🤴', '🅰'
+    )
     values: tuple[int] = (2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11)
     suits: tuple[int] = ('♠', '♣', '♥', '♦')
     set: list[Card] = [Card(*card) for card in itertools.product(ranks, suits)]

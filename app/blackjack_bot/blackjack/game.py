@@ -3,6 +3,7 @@ from datetime import datetime
 from enum import auto
 from typing import Callable, Awaitable
 
+from app.blackjack_bot.telegram.dtos import User
 from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard
 from app.packages.enum_generator import GeneratedStrEnum
 from app.packages.logger import logger
@@ -63,11 +64,11 @@ class Game:
         await self.state_handler.start()
         await self.render_message()
 
-    async def handle_event(self, player_id: int, data: str) -> str | None:
+    async def handle_event(self, player: User, data: str) -> str | None:
         if data not in self.state_handler.query_commands:
             logger.warning('no handler for query data: %s', data)
             return None
-        is_updated, answer = self.state_handler.handle(player_id, data)
+        is_updated, answer = await self.state_handler.handle(player, data)
         if is_updated:
             await self.render_message()
         return answer

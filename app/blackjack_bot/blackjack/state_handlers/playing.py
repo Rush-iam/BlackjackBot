@@ -2,12 +2,14 @@ import itertools
 from asyncio import Task
 
 from app.blackjack_bot.blackjack.player import Player, PlayerResult, PlayerState
+from app.blackjack_bot.telegram.dtos import User
+from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard, InlineButton
 
 from .base import StateHandler
 
 
 class PlayingHandler(StateHandler):
-    title: str = 'Blackjack'
+    title: str = 'Ещё карту?'
     timer: int = 10
     timer_task: Task | None = None
     query_commands: list[str] = ['hit', 'stand']
@@ -18,16 +20,22 @@ class PlayingHandler(StateHandler):
 
     async def start(self) -> None:
         self.game.dealer.hand.add_card(self.game.deck.take_random_card())
+        for player in self.game.players:
+            player.hand.add_card(self.game.deck.take_random_card())
+            player.hand.add_card(self.game.deck.take_random_card())
         await self.next_round_transition()
 
-    async def finish(self):
-        dealer_min, dealer_max = self.game.dealer.hand.blackjack_values
-        while dealer_min < 16 and dealer_max != 21:
+    async def finish(self) -> None:
+        while True:
             self.game.dealer.hand.add_card(self.game.deck.take_random_card())
+            dealer_min, dealer_max = self.game.dealer.hand.blackjack_values
+            if dealer_min >= 16 or dealer_max == 21:
+                break
             # TODO: emulate 1 sec delay?
 
         dealer_score = self.game.dealer.hand.blackjack_best_value
-        dealer_lost = dealer_score > 21
+        if dealer_lost := dealer_score > 21:
+            self.game.dealer.result = PlayerResult.lost
 
         for player in self.game.players:
             player_score = player.hand.blackjack_best_value
@@ -35,7 +43,7 @@ class PlayingHandler(StateHandler):
             if player_lost:
                 player.result = PlayerResult.draw if dealer_lost else PlayerResult.lost
             else:
-                if dealer_score < player_score:
+                if dealer_score < player_score or dealer_lost:
                     player.result = PlayerResult.won
                 elif dealer_score == player_score:
                     player.result = PlayerResult.draw
@@ -44,9 +52,9 @@ class PlayingHandler(StateHandler):
 
         await self.game.next_state_transition()
 
-    def handle(self, player_id: int, data: str) -> tuple[bool, str | None]:
-        if self.current_player.id != player_id:
-            return False, 'Это не Ваш ход!'
+    async def handle(self, player: User, data: str) -> tuple[bool, str | None]:
+        if self.current_player.id != player.id:
+            return False, 'Погоди-ка, это не твой ход'
 
         self.timer_task.cancel()
         player = self.current_player
@@ -60,10 +68,10 @@ class PlayingHandler(StateHandler):
         elif data == 'stand':
             player.state = PlayerState.completed
 
-        self.next_player_transition()
-        return True, 'Ход сделан'
+        await self.next_player_transition(force_render=True)
+        return False, None
 
-    async def next_round_transition(self) -> None:
+    async def next_round_transition(self, force_render: bool = False) -> None:
         active_players_count = 0
         for player in self.game.players:
             if player.state is PlayerState.waiting:
@@ -71,17 +79,20 @@ class PlayingHandler(StateHandler):
                 active_players_count += 1
         if active_players_count:
             self.game.round += 1
-            return await self.next_player_transition()
+            await self.next_player_transition(force_render)
         else:
-            return await self.finish()
+            await self.finish()
 
-    async def next_player_transition(self) -> None:
+    async def next_player_transition(self, force_render: bool = False) -> None:
         player = self.get_next_active_player()
         if not player:
-            return await self.next_round_transition()
+            await self.next_round_transition(force_render)
+            return
 
         self.current_player = player
         self.timer_task = self.game.run_after(self.timer, self.player_timeout)
+        if force_render:
+            await self.game.render_message()
 
     def get_next_active_player(self) -> Player | None:
         return next(
@@ -91,13 +102,19 @@ class PlayingHandler(StateHandler):
             ), None
         )
 
-    async def player_timeout(self):
+    async def player_timeout(self) -> None:
         self.current_player.state = PlayerState.completed
-        await self.next_player_transition()
-        await self.game.render_message()
+        await self.next_player_transition(force_render=True)
 
     def render_lines(self) -> list[str]:
         return [
             player.str_with_cards()
             for player in itertools.chain([self.game.dealer], self.game.players)
-        ]
+        ] + [''] + [f'{self.current_player.name}, ещё карту?']
+
+    @staticmethod
+    def render_keyboard() -> InlineKeyboard:
+        keyboard = InlineKeyboard()
+        keyboard[0][0] = InlineButton(text='☝', callback_data='hit')
+        keyboard[0][1] = InlineButton(text='🤚', callback_data='stand')
+        return keyboard

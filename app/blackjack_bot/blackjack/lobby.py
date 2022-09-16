@@ -43,7 +43,7 @@ class Lobby:
         if not game:
             return
         return await game.handle_event(
-            player_id=callback_query.from_.id, data=callback_query.data
+            player=callback_query.from_, data=callback_query.data
         )
 
     async def message_editor(

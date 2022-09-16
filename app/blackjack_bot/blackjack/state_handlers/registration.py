@@ -1,4 +1,5 @@
 from app.blackjack_bot.blackjack.player import Player, PlayerState
+from app.blackjack_bot.telegram.dtos import User
 from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard, InlineButton
 
 from .base import StateHandler
@@ -18,19 +19,19 @@ class RegistrationHandler(StateHandler):
         else:
             await self.game.finish_game()
 
-    def handle(self, player_id: int, data: str) -> tuple[bool, str | None]:
-        found_player = self.game.player_find(player_id)
+    async def handle(self, player: User, data: str) -> tuple[bool, str | None]:
+        found_player = self.game.player_find(player.id)
 
         if data == 'add' and not found_player:
-            player = Player.get_by_id(player_id, 'player_name')
+            player = Player.get_by_id(player.id, player.short_name)
             if player.state == PlayerState.idle:
                 player.state = PlayerState.waiting
                 self.game.players.append(player)
-                return True, 'Регистрация успешна'
+                return True, 'Добро пожаловать!'
         elif data == 'remove' and found_player:
             self.game.players.pop(self.game.players.index(found_player))
             found_player.state = PlayerState.idle
-            return True, 'Отмена регистрации'
+            return True, 'Уже уходите?'
         return False, 'Не тыкай дважды! :)'
 
     def render_lines(self) -> list[str]:

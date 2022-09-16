@@ -1,6 +1,7 @@
 import abc
 import typing
 
+from app.blackjack_bot.telegram.dtos import User
 from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard
 
 if typing.TYPE_CHECKING:
@@ -20,7 +21,7 @@ class StateHandler(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def handle(self, from_id: int, data: str) -> tuple[bool, str | None]:
+    async def handle(self, player: User, data: str) -> tuple[bool, str | None]:
         ...
 
     @abc.abstractmethod
