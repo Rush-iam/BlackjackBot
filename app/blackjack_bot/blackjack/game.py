@@ -1,7 +1,7 @@
-from asyncio import Task, sleep, create_task
+from asyncio import Task, create_task, sleep
 from datetime import datetime
 from enum import auto
-from typing import Callable, Awaitable
+from typing import Awaitable, Callable
 
 from app.blackjack_bot.telegram.dtos import User
 from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard
@@ -31,9 +31,9 @@ class Game:
         message_editor: Callable[[str, InlineKeyboard | None], Awaitable[None]],
     ):
         self.id: int | str = game_id
-        self.message_editor: Callable[[str, InlineKeyboard | None], Awaitable[None]] = (
-            message_editor
-        )
+        self.message_editor: Callable[
+            [str, InlineKeyboard | None], Awaitable[None]
+        ] = message_editor
         self.start_time: datetime = datetime.now()
         self.end_time: datetime | None = None
         self.tasks_ref: set[Task] = set()  # protects Task from garbage collector
@@ -64,11 +64,14 @@ class Game:
         await self.state_handler.start()
         await self.render_message()
 
-    async def handle_event(self, player: User, data: str) -> str | None:
+    async def handle_event(self, tg_player: User, data: str) -> str | None:
+        if not self.state_handler:
+            raise Exception('Game: handle_event: no state handler set')
+
         if data not in self.state_handler.query_commands:
             logger.warning('no handler for query data: %s', data)
             return None
-        is_updated, answer = await self.state_handler.handle(player, data)
+        is_updated, answer = await self.state_handler.handle(tg_player, data)
         if is_updated:
             await self.render_message()
         return answer
@@ -92,6 +95,7 @@ class Game:
         async def _run_after() -> None:
             await sleep(seconds)
             await function()
+
         task = create_task(_run_after())
         self.tasks_ref.add(task)
         task.add_done_callback(self.tasks_ref.discard)

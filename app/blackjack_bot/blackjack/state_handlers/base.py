@@ -4,6 +4,7 @@ import typing
 from app.blackjack_bot.telegram.dtos import User
 from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard
 
+
 if typing.TYPE_CHECKING:
     from app.blackjack_bot.blackjack.game import Game
 
@@ -21,7 +22,7 @@ class StateHandler(abc.ABC):
         ...
 
     @abc.abstractmethod
-    async def handle(self, player: User, data: str) -> tuple[bool, str | None]:
+    async def handle(self, tg_player: User, data: str) -> tuple[bool, str | None]:
         ...
 
     @abc.abstractmethod

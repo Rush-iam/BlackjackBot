@@ -71,14 +71,14 @@ test:
 test-cov:
 	poetry run pytest --cov=$(PROJECT_DIR) --cov-report html
 
-lint: isort black mypy pylint
+lint: isort black pylint #mypy
 isort:
 	poetry run isort $(PROJECT_DIR) $(TESTS_DIR)
 black:
 	poetry run black $(PROJECT_DIR) $(TESTS_DIR)
-mypy:
-	poetry run mypy $(PROJECT_DIR)
 pylint:
 	poetry run pylint -j $(NPROCS) $(PROJECT_DIR) $(TESTS_DIR)
+mypy:
+	poetry run mypy $(PROJECT_DIR)
 
-.PHONY: all venv db db_stop migrate revision run test test-cov lint isort black mypy pylint
+.PHONY: all venv db db_stop migrate revision run test test-cov lint isort black pylint mypy

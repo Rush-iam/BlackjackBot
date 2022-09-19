@@ -1,4 +1,4 @@
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, cast
 
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client import _RequestContextManager
@@ -8,12 +8,15 @@ from app.packages.config import Config, TelegramConfig
 
 from .constants import TelegramMethod
 from .dtos import (
+    AnswerCallbackQueryRequest,
+    EditMessageTextRequest,
+    InlineKeyboardMarkup,
     Message,
     SendMessageRequest,
     TelegramResponse,
     Update,
     UpdateRequest,
-    EditMessageTextRequest, InlineKeyboardMarkup, AnswerCallbackQueryRequest, )
+)
 from .poller import Poller
 from .utils import build_query, log_error
 
@@ -91,23 +94,23 @@ class TelegramAccessor:
             if not tg_response.ok:
                 await log_error(response)
                 return False
-            return tg_response.result
+            return cast(bool, tg_response.result)
 
     async def _message_request(
         self, method: TelegramMethod, request_payload: BaseModel
     ) -> Message | None:
-        if not self._session:
-            raise Exception('TelegramAccessor: edit_message_text: no session')
         async with self._request(method, request_payload) as response:
             tg_response = TelegramResponse(**await response.json())
             if not tg_response.ok:
                 await log_error(response)
                 return None
-            return Message(**tg_response.result)
+            return Message.parse_obj(tg_response.result)
 
     def _request(
         self, method: TelegramMethod, request_payload: BaseModel
     ) -> _RequestContextManager:
+        if not self._session:
+            raise Exception('TelegramAccessor: edit_message_text: no session')
         return self._session.post(
             url=build_query(self._config.token, method),
             json=request_payload.dict(exclude_none=True),

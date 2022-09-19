@@ -2,6 +2,7 @@ from enum import auto
 
 from app.packages.enum_generator import GeneratedStrEnum
 
+
 API_URL = 'https://api.telegram.org/bot'
 
 

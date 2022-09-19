@@ -1,4 +1,4 @@
-from app.blackjack_bot.blackjack.player import PlayerState, PlayerResult
+from app.blackjack_bot.blackjack.player import PlayerResult, PlayerState
 from app.blackjack_bot.telegram.dtos import User
 
 from .base import StateHandler
@@ -11,7 +11,7 @@ class FinishedHandler(StateHandler):
         for player in self.game.players:
             player.state = PlayerState.idle
 
-    async def handle(self, player: User, data: str) -> tuple[bool, str | None]:
+    async def handle(self, tg_player: User, data: str) -> tuple[bool, str | None]:
         pass
 
     def render_lines(self) -> list[str]:

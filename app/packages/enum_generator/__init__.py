@@ -1,1 +1,1 @@
-from .generated_str import GeneratedStrEnum
+from .generated_str import *

@@ -3,13 +3,13 @@ from typing import Annotated
 
 from pydantic import BaseModel, conbytes
 
-from app.blackjack_bot.telegram.dtos import InlineKeyboardMarkup, InlineKeyboardButton
+from app.blackjack_bot.telegram.dtos import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 class InlineButton(BaseModel):
     text: str
     url: str | None = None
-    callback_data: str | None = Annotated[str, conbytes(min_length=1, max_length=64)]
+    callback_data: Annotated[str | None, conbytes(min_length=1, max_length=64)] = None
 
 
 class InlineKeyboard:
@@ -29,7 +29,7 @@ class InlineKeyboard:
             row_dict = self._buttons.get(row)
             if not row_dict:
                 raise Exception('InlineKeyboard: missing element in button row')
-            tg_buttons_list.append(list())
+            tg_buttons_list.append([])
             for column in range(len(row_dict)):
                 button = row_dict.get(column)
                 if not button:

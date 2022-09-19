@@ -1,9 +1,10 @@
 from functools import partial
-from typing import cast, Callable, Awaitable
+from typing import Awaitable, Callable, cast
 
 from app.blackjack_bot.bot.accessor import BotAccessor
-from app.blackjack_bot.telegram.dtos import Message, CallbackQuery
+from app.blackjack_bot.telegram.dtos import CallbackQuery, Message
 from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard
+from app.packages.logger import logger
 
 from .game import Game, GameState
 
@@ -32,18 +33,25 @@ class Lobby:
 
         message_editor = cast(
             Callable[[str, InlineKeyboard | None], Awaitable[None]],
-            partial(self.message_editor, game_message.chat.id, game_message.message_id)
+            partial(self.message_editor, game_message.chat.id, game_message.message_id),
         )
         game = Game(game_id=chat_id, message_editor=message_editor)
         self.active_games[chat_id] = game
         await game.start()
 
     async def callback_query_router(self, callback_query: CallbackQuery) -> str | None:
+        if (
+            not callback_query.data
+            or not callback_query.message
+            or not callback_query.message.chat
+        ):
+            logger.warning('cannot handle callback_query: %s', callback_query)
+            return None
         game = self.active_games.get(callback_query.message.chat.id)
         if not game:
-            return
+            return None
         return await game.handle_event(
-            player=callback_query.from_, data=callback_query.data
+            tg_player=callback_query.from_, data=callback_query.data
         )
 
     async def message_editor(

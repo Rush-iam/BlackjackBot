@@ -1,11 +1,10 @@
 import itertools
 import random
-
 from typing import NamedTuple
 
 
 class Card(NamedTuple):
-    rank: int | str
+    rank: str
     suit: str
 
     def __repr__(self) -> str:
@@ -13,11 +12,23 @@ class Card(NamedTuple):
 
 
 class Deck:
-    ranks: tuple[str] = (
-        '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🤵', '👰‍', '🤴', '🅰'
+    ranks: tuple[str, ...] = (
+        '2️⃣',
+        '3️⃣',
+        '4️⃣',
+        '5️⃣',
+        '6️⃣',
+        '7️⃣',
+        '8️⃣',
+        '9️⃣',
+        '🔟',
+        '🤵',
+        '👰‍',
+        '🤴',
+        '🅰',
     )
-    values: tuple[int] = (2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11)
-    suits: tuple[int] = ('♠', '♣', '♥', '♦')
+    values: tuple[int, ...] = (2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11)
+    suits: tuple[str, ...] = ('♠', '♣', '♥', '♦')
     set: list[Card] = [Card(*card) for card in itertools.product(ranks, suits)]
 
     def __init__(self, empty: bool = False):
@@ -27,7 +38,7 @@ class Deck:
         return ' '.join(repr(card) for card in self.cards)
 
     @classmethod
-    def value(cls, rank) -> int:
+    def value(cls, rank: str) -> int:
         return cls.values[cls.ranks.index(rank)]
 
     @property
@@ -45,8 +56,7 @@ class Deck:
         min_value, max_value = self.blackjack_values
         if max_value <= 21:
             return max_value
-        else:
-            return min_value
+        return min_value
 
     def add_card(self, card: Card) -> None:
         self.cards.append(card)

@@ -49,10 +49,10 @@ jobs:
         if: always()
         run: poetry run black $PROJECT_DIR $TESTS_DIR
 
-      - name: Linter Mypy
-        if: always()
-        run: poetry run mypy $PROJECT_DIR
-
       - name: Linter Pylint
         if: always()
         run: poetry run pylint -j 0 $PROJECT_DIR $TESTS_DIR
+
+#      - name: Linter Mypy
+#        if: always()
+#        run: poetry run mypy $PROJECT_DIR

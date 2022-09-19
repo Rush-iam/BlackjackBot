@@ -1,6 +1,6 @@
 from app.blackjack_bot.blackjack.player import Player, PlayerState
 from app.blackjack_bot.telegram.dtos import User
-from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard, InlineButton
+from app.blackjack_bot.telegram.inline_keyboard import InlineButton, InlineKeyboard
 
 from .base import StateHandler
 
@@ -19,11 +19,11 @@ class RegistrationHandler(StateHandler):
         else:
             await self.game.finish_game()
 
-    async def handle(self, player: User, data: str) -> tuple[bool, str | None]:
-        found_player = self.game.player_find(player.id)
+    async def handle(self, tg_player: User, data: str) -> tuple[bool, str | None]:
+        found_player = self.game.player_find(tg_player.id)
 
         if data == 'add' and not found_player:
-            player = Player.get_by_id(player.id, player.short_name)
+            player = Player.get_by_id(tg_player.id, tg_player.short_name)
             if player.state == PlayerState.idle:
                 player.state = PlayerState.waiting
                 self.game.players.append(player)

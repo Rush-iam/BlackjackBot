@@ -1,5 +1,7 @@
+import logging
+
 from app.blackjack_bot.telegram.dtos import User
-from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard, InlineButton
+from app.blackjack_bot.telegram.inline_keyboard import InlineButton, InlineKeyboard
 
 from .base import StateHandler
 
@@ -13,8 +15,8 @@ class BettingHandler(StateHandler):
     async def start(self) -> None:
         self.game.run_after(self.timer, self.game.next_state_transition)
 
-    async def handle(self, player: User, data: str) -> tuple[bool, str | None]:
-        player = self.game.player_find(player.id)
+    async def handle(self, tg_player: User, data: str) -> tuple[bool, str | None]:
+        player = self.game.player_find(tg_player.id)
         if not player:
             return False, 'Не получится, Вас нет в игре'
 
@@ -30,6 +32,9 @@ class BettingHandler(StateHandler):
                 return True, f'Ставка ➖{self.bet_step}$'
             else:
                 return False, 'Здесь серьёзное заведение'
+
+        logging.warning('unknown data: %s', data)
+        return False, ''
 
     def render_lines(self) -> list[str]:
         return [player.str_with_bet() for player in self.game.players]

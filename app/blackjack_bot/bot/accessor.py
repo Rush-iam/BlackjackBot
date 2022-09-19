@@ -1,10 +1,11 @@
-from typing import Callable, Awaitable
+from typing import Awaitable, Callable
 
 from app.blackjack_bot.telegram.accessor import TelegramAccessor
 from app.blackjack_bot.telegram.constants import MessageEntityType
-from app.blackjack_bot.telegram.dtos import Update, Message, CallbackQuery
+from app.blackjack_bot.telegram.dtos import CallbackQuery, Message, Update
 from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard
 from app.packages.logger import logger
+
 
 CommandHandlerCallable = Callable[[Message], Awaitable[None]]
 QueryHandlerCallable = Callable[[CallbackQuery], Awaitable[str | None]]
@@ -58,15 +59,18 @@ class BotAccessor:
     async def _handle_message(self, message: Message) -> None:
         if message.from_:
             logger.info('%s: %s', message.from_.username, message.text)
-        if not message.entities:
+        if not message.text or not message.entities:
             return
         for entity in message.entities[:1]:
             if entity.type == MessageEntityType.bot_command:
-                command = message.text[entity.offset:entity.offset + entity.length]
+                command = message.text[entity.offset : entity.offset + entity.length]
                 if command_handler := self.commands.get(command):
                     await command_handler(message)
 
     async def _handle_callback_query(self, callback_query: CallbackQuery) -> None:
+        if not callback_query.data:
+            logger.warning('cannot handle callback_query: %s', callback_query)
+            return
         prefix, data = callback_query.data.split(maxsplit=1)
         if query_handler := self.query_handlers.get(prefix):
             callback_query.data = data

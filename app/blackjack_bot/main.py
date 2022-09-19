@@ -17,6 +17,7 @@ async def run_app() -> None:
     bot = BotAccessor(telegram)
 
     blackjack_lobby = Lobby(bot)
+    _ = blackjack_lobby
 
     await bot.run()
 

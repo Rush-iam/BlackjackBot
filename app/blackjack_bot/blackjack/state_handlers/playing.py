@@ -3,7 +3,7 @@ from asyncio import Task
 
 from app.blackjack_bot.blackjack.player import Player, PlayerResult, PlayerState
 from app.blackjack_bot.telegram.dtos import User
-from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard, InlineButton
+from app.blackjack_bot.telegram.inline_keyboard import InlineButton, InlineKeyboard
 
 from .base import StateHandler
 
@@ -52,11 +52,15 @@ class PlayingHandler(StateHandler):
 
         await self.game.next_state_transition()
 
-    async def handle(self, player: User, data: str) -> tuple[bool, str | None]:
-        if self.current_player.id != player.id:
+    async def handle(self, tg_player: User, data: str) -> tuple[bool, str | None]:
+        if not self.current_player:
+            raise Exception('PlayingHandler: handle: no current player')
+
+        if self.current_player.id != tg_player.id:
             return False, 'Погоди-ка, это не твой ход'
 
-        self.timer_task.cancel()
+        if self.timer_task:
+            self.timer_task.cancel()
         player = self.current_player
         if data == 'hit':
             player.hand.add_card(self.game.deck.take_random_card())
@@ -97,20 +101,28 @@ class PlayingHandler(StateHandler):
     def get_next_active_player(self) -> Player | None:
         return next(
             (
-                player for player in self.game.players
+                player
+                for player in self.game.players
                 if player.state is PlayerState.playing
-            ), None
+            ),
+            None,
         )
 
     async def player_timeout(self) -> None:
-        self.current_player.state = PlayerState.completed
+        if self.current_player:
+            self.current_player.state = PlayerState.completed
         await self.next_player_transition(force_render=True)
 
     def render_lines(self) -> list[str]:
-        return [
+        lines: list[str] = []
+        lines.extend(
             player.str_with_cards()
             for player in itertools.chain([self.game.dealer], self.game.players)
-        ] + [''] + [f'{self.current_player.name}, ещё карту?']
+        )
+        lines.append('')
+        if self.current_player:
+            lines.append(f'{self.current_player.name}, ещё карту?')
+        return lines
 
     @staticmethod
     def render_keyboard() -> InlineKeyboard:

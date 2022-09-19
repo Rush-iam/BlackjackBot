@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, constr, conbytes
+from pydantic import BaseModel, Field, conbytes, constr
 
 from .constants import MessageEntityType
 
@@ -34,10 +34,9 @@ class User(BaseModel):
 
     @property
     def short_name(self) -> str:
-        return (
-            f'{self.first_name} {self.last_name[0]}'
-            if self.last_name else self.first_name
-        )
+        if self.last_name:
+            return f'{self.first_name} {self.last_name[:1]}'
+        return self.first_name
 
 
 class Chat(BaseModel):
@@ -79,7 +78,7 @@ class MessageEntity(BaseModel):
 class InlineKeyboardButton(BaseModel):
     text: str
     url: str | None = None
-    callback_data: str | None = Annotated[str, conbytes(min_length=1, max_length=64)]
+    callback_data: Annotated[str | None, conbytes(min_length=1, max_length=64)] = None
     # web_app: WebAppInfo | None = None
     # login_url: LoginUrl | None = None
     switch_inline_query: str | None = None
