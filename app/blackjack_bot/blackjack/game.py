@@ -1,5 +1,4 @@
 from asyncio import Task, create_task, sleep
-from datetime import datetime
 from enum import auto
 from typing import Awaitable, Callable
 
@@ -15,6 +14,7 @@ from .state_handlers.betting import BettingHandler
 from .state_handlers.finished import FinishedHandler
 from .state_handlers.playing import PlayingHandler
 from .state_handlers.registration import RegistrationHandler
+from .store import BlackjackStore
 
 
 class GameState(GeneratedStrEnum):
@@ -27,15 +27,16 @@ class GameState(GeneratedStrEnum):
 class Game:
     def __init__(
         self,
-        game_id: int | str,
+        game_id: int,
+        chat_id: int | str,
         message_editor: Callable[[str, InlineKeyboard | None], Awaitable[None]],
+        store: BlackjackStore,
     ):
-        self.id: int | str = game_id
+        self.id: int = game_id
+        self.chat_id: int | str = chat_id
         self.message_editor: Callable[
             [str, InlineKeyboard | None], Awaitable[None]
         ] = message_editor
-        self.start_time: datetime = datetime.now()
-        self.end_time: datetime | None = None
         self.tasks_ref: set[Task] = set()  # protects Task from garbage collector
 
         self.next_states: list[tuple[GameState, StateHandler]] = [
@@ -48,9 +49,11 @@ class Game:
         self.state_handler: StateHandler | None = None
 
         self.players: list[Player] = []
-        self.dealer: Player = Player(player_id=0, name='Дилер')
+        self.dealer: Player = Player(player_id=0, name='Дилер', balance=0)
         self.deck: Deck = Deck()
         self.round: int = 0
+
+        self.store: BlackjackStore = store
 
     def player_find(self, player_id: int) -> Player | None:
         return next((player for player in self.players if player.id == player_id), None)
@@ -79,7 +82,6 @@ class Game:
     async def finish_game(self) -> None:
         while self.next_states:
             self.state, self.state_handler = self.next_states.pop(0)
-        self.end_time = datetime.now()
         await self.render_message()
 
     async def render_message(self):

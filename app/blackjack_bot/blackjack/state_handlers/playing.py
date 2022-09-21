@@ -49,6 +49,10 @@ class PlayingHandler(StateHandler):
                     player.result = PlayerResult.draw
                 else:
                     player.result = PlayerResult.lost
+            if player.result is PlayerResult.won:  # TODO: гонка с параллельной игрой
+                player.balance += player.bet
+            elif player.result is PlayerResult.lost:
+                player.balance -= player.bet
 
         await self.game.next_state_transition()
 
@@ -116,7 +120,7 @@ class PlayingHandler(StateHandler):
     def render_lines(self) -> list[str]:
         lines: list[str] = []
         lines.extend(
-            player.str_with_cards()
+            f'{player.name}\n{player.str_cards()}'
             for player in itertools.chain([self.game.dealer], self.game.players)
         )
         lines.append('')

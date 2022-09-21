@@ -1,4 +1,4 @@
-from app.blackjack_bot.blackjack.player import Player, PlayerState
+from app.blackjack_bot.blackjack.player import PlayerState
 from app.blackjack_bot.telegram.dtos import User
 from app.blackjack_bot.telegram.inline_keyboard import InlineButton, InlineKeyboard
 
@@ -15,6 +15,11 @@ class RegistrationHandler(StateHandler):
 
     async def finish(self):
         if self.game.players:
+            await self.game.store.add_players_to_game_and_chat(
+                game_id=self.game.id,
+                chat_id=self.game.chat_id,
+                player_ids=[player.id for player in self.game.players],
+            )
             await self.game.next_state_transition()
         else:
             await self.game.finish_game()
@@ -23,7 +28,9 @@ class RegistrationHandler(StateHandler):
         found_player = self.game.player_find(tg_player.id)
 
         if data == 'add' and not found_player:
-            player = Player.get_by_id(tg_player.id, tg_player.short_name)
+            player = await self.game.store.get_or_create_player(
+                tg_player.id, tg_player.short_name
+            )
             if player.state == PlayerState.idle:
                 player.state = PlayerState.waiting
                 self.game.players.append(player)
@@ -35,7 +42,7 @@ class RegistrationHandler(StateHandler):
         return False, 'Не тыкай дважды! :)'
 
     def render_lines(self) -> list[str]:
-        return [player.str_with_balance() for player in self.game.players]
+        return [player.str_with_balance_v2() for player in self.game.players]
 
     @staticmethod
     def render_keyboard() -> InlineKeyboard:

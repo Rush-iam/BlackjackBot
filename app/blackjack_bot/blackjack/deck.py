@@ -8,28 +8,46 @@ class Card(NamedTuple):
     suit: str
 
     def __repr__(self) -> str:
-        return f'{self.rank}{self.suit}'
+        return f'{Deck.rank_emojis[self.rank]}{self.suit}'
+
+    @property
+    def value(self) -> int:
+        return Deck.ranks[self.rank]
 
 
 class Deck:
-    ranks: tuple[str, ...] = (
-        '2️⃣',
-        '3️⃣',
-        '4️⃣',
-        '5️⃣',
-        '6️⃣',
-        '7️⃣',
-        '8️⃣',
-        '9️⃣',
-        '🔟',
-        '🤵',
-        '👰‍',
-        '🤴',
-        '🅰',
-    )
-    values: tuple[int, ...] = (2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11)
+    ranks: dict[str, int] = {
+        '2': 2,
+        '3': 3,
+        '4': 4,
+        '5': 5,
+        '6': 6,
+        '7': 7,
+        '8': 8,
+        '9': 9,
+        '10': 10,
+        'J': 10,
+        'Q': 10,
+        'K': 10,
+        'A': 11,
+    }
+    rank_emojis: dict[str, str] = {
+        '2': '2️⃣',
+        '3': '3️⃣',
+        '4': '4️⃣',
+        '5': '5️⃣',
+        '6': '6️⃣',
+        '7': '7️⃣',
+        '8': '8️⃣',
+        '9': '9️⃣',
+        '10': '🔟',
+        'J': '🤵',
+        'Q': '👰‍',
+        'K': '🤴',
+        'A': '🅰',
+    }
     suits: tuple[str, ...] = ('♠', '♣', '♥', '♦')
-    set: list[Card] = [Card(*card) for card in itertools.product(ranks, suits)]
+    set: list[Card] = [Card(*card) for card in itertools.product(ranks.keys(), suits)]
 
     def __init__(self, empty: bool = False):
         self.cards: list[Card] = [] if empty else self.set
@@ -37,18 +55,14 @@ class Deck:
     def __repr__(self) -> str:
         return ' '.join(repr(card) for card in self.cards)
 
-    @classmethod
-    def value(cls, rank: str) -> int:
-        return cls.values[cls.ranks.index(rank)]
-
     @property
     def blackjack_values(self) -> tuple[int, int]:
         min_value = 0
         max_value = 0
         for card in self.cards:
-            value = self.value(card.rank)
+            value = card.value
             min_value += value if card.rank != 'A' else 1
-            max_value += self.value(card.rank)
+            max_value += card.value
         return min_value, max_value
 
     @property

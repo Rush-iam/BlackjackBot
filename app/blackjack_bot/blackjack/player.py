@@ -20,27 +20,23 @@ class PlayerResult(GeneratedStrEnum):
 
 
 class Player:
-    def __init__(self, player_id: int, name: str):
+    def __init__(self, player_id: int, name: str, balance: int):
         self.id: int = player_id
         self.name: str = name
-        self.balance: int = 1000
+        self.balance: int = balance
         self.bet: int = 50
         self.hand: Deck = Deck(empty=True)
         self.state: PlayerState = PlayerState.idle
         self.result: PlayerResult = PlayerResult.none
 
-    @classmethod
-    def get_by_id(cls, player_id: int, name: str) -> 'Player':
-        # if player_id exists in db:
-        # return player from db
-        # else:
-        return cls(player_id, name)
-
     def str_with_balance(self) -> str:
+        return f'{self.name}: {self.balance}$'
+
+    def str_with_balance_v2(self) -> str:
         return f'{self.name} ({self.balance}$)'
 
     def str_with_bet(self) -> str:
         return f'{self.name}: {self.bet}$'
 
-    def str_with_cards(self) -> str:
-        return f'{self.name} - {self.hand.blackjack_best_value} - {self.hand}'
+    def str_cards(self) -> str:
+        return f'{self.hand} ({self.hand.blackjack_best_value})'

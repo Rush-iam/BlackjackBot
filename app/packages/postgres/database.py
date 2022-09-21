@@ -1,9 +1,8 @@
 import sys
-from typing import Any
+from typing import Any, cast
 
-from aiohttp.web_app import Application
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 
 from app.packages.logger import logger
 
@@ -30,7 +29,7 @@ class Database:
             future=True,  # remove after upgrading to SQLAlchemy 2.0
         )
 
-    async def connect(self, _: Application) -> None:
+    async def connect(self, *_: Any, **__: Any) -> None:
         try:
             async with self.engine.connect():
                 ...
@@ -41,12 +40,12 @@ class Database:
             sys.exit(1)
         logger.info('Database connected')
 
-    async def disconnect(self, _: Application) -> None:
+    async def disconnect(self, *_: Any, **__: Any) -> None:
         if self.engine:
             await self.engine.dispose()
 
     def session(self) -> AsyncSessionType:
         """
-        Autocommit ORM session
+        ORM session
         """
-        return self.session_maker.begin()
+        return cast(AsyncSessionType, self.session_maker())

@@ -62,7 +62,7 @@ class BotAccessor:
         if not message.text or not message.entities:
             return
         for entity in message.entities[:1]:
-            if entity.type == MessageEntityType.bot_command:
+            if entity.type is MessageEntityType.bot_command:
                 command = message.text[entity.offset : entity.offset + entity.length]
                 if command_handler := self.commands.get(command):
                     await command_handler(message)
