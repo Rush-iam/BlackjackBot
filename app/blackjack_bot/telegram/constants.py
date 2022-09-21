@@ -11,6 +11,7 @@ class TelegramMethod(GeneratedStrEnum):
     getUpdates = auto()
     sendMessage = auto()
     editMessageText = auto()
+    deleteMessage = auto()
     answerCallbackQuery = auto()
 
 

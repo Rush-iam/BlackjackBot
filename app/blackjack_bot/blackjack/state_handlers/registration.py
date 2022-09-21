@@ -1,17 +1,17 @@
 from app.blackjack_bot.blackjack.player import PlayerState
+from app.blackjack_bot.bot.inline_keyboard import InlineButton, InlineKeyboard
 from app.blackjack_bot.telegram.dtos import User
-from app.blackjack_bot.telegram.inline_keyboard import InlineButton, InlineKeyboard
 
 from .base import StateHandler
 
 
 class RegistrationHandler(StateHandler):
     title: str = 'Регистрация игроков'
-    timer: int = 10
     query_commands: list[str] = ['add', 'remove']
 
     async def start(self) -> None:
-        self.game.run_after(self.timer, self.finish)
+        self.game.timer.run_after(self.finish)
+        await self.game.render_message()
 
     async def finish(self):
         if self.game.players:

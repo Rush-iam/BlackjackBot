@@ -15,7 +15,7 @@ from .dtos import (
     SendMessageRequest,
     TelegramResponse,
     Update,
-    UpdateRequest,
+    UpdateRequest, DeleteMessageRequest,
 )
 from .poller import Poller
 from .utils import build_query, log_error
@@ -75,6 +75,13 @@ class TelegramAccessor:
         )
         return await self._message_request(TelegramMethod.editMessageText, request)
 
+    async def delete_message(self, chat_id: int | str, message_id: int) -> bool:
+        request = DeleteMessageRequest(
+            chat_id=chat_id,
+            message_id=message_id,
+        )
+        return await self._bool_request(TelegramMethod.deleteMessage, request)
+
     async def answer_callback_query(
         self,
         callback_query_id: str,
@@ -88,13 +95,7 @@ class TelegramAccessor:
             show_alert=show_alert,
             **kwargs,
         )
-        method = TelegramMethod.answerCallbackQuery
-        async with self._request(method, request) as response:
-            tg_response = TelegramResponse(**await response.json())
-            if not tg_response.ok:
-                await log_error(response)
-                return False
-            return cast(bool, tg_response.result)
+        return await self._bool_request(TelegramMethod.answerCallbackQuery, request)
 
     async def _message_request(
         self, method: TelegramMethod, request_payload: BaseModel
@@ -105,6 +106,16 @@ class TelegramAccessor:
                 await log_error(response)
                 return None
             return Message.parse_obj(tg_response.result)
+
+    async def _bool_request(
+        self, method: TelegramMethod, request_payload: BaseModel
+    ) -> bool:
+        async with self._request(method, request_payload) as response:
+            tg_response = TelegramResponse(**await response.json())
+            if not tg_response.ok:
+                await log_error(response)
+                return False
+            return cast(bool, tg_response.result)
 
     def _request(
         self, method: TelegramMethod, request_payload: BaseModel

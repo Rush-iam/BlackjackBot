@@ -1,19 +1,19 @@
 import logging
 
+from app.blackjack_bot.bot.inline_keyboard import InlineButton, InlineKeyboard
 from app.blackjack_bot.telegram.dtos import User
-from app.blackjack_bot.telegram.inline_keyboard import InlineButton, InlineKeyboard
 
 from .base import StateHandler
 
 
 class BettingHandler(StateHandler):
     title: str = 'Ваши ставки, господа'
-    timer: int = 10
     bet_step: int = 10
     query_commands: list[str] = ['up', 'down']
 
     async def start(self) -> None:
-        self.game.run_after(self.timer, self.game.next_state_transition)
+        self.game.timer.run_after(self.game.next_state_transition)
+        await self.game.render_message()
 
     async def handle(self, tg_player: User, data: str) -> tuple[bool, str | None]:
         player = self.game.player_find(tg_player.id)

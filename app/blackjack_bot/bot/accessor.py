@@ -2,8 +2,8 @@ from typing import Awaitable, Callable
 
 from app.blackjack_bot.telegram.accessor import TelegramAccessor
 from app.blackjack_bot.telegram.constants import MessageEntityType
-from app.blackjack_bot.telegram.dtos import CallbackQuery, Message, Update
-from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard
+from app.blackjack_bot.telegram.dtos import CallbackQuery, Message, Update, \
+    InlineKeyboardMarkup
 from app.packages.logger import logger
 
 
@@ -39,12 +39,14 @@ class BotAccessor:
         chat_id: int | str,
         message_id: int,
         text: str,
-        keyboard: InlineKeyboard | None = None,
+        keyboard: InlineKeyboardMarkup | None = None,
     ) -> Message | None:
-        tg_keyboard = keyboard.to_reply_markup() if keyboard else None
         return await self.telegram.edit_message_text(
-            chat_id, message_id, text, tg_keyboard
+            chat_id, message_id, text, keyboard
         )
+
+    async def delete_message(self, chat_id: int, message_id: int) -> bool:
+        return await self.telegram.delete_message(chat_id, message_id)
 
     async def _handle_updates(self, updates: list[Update]) -> None:
         for update in updates:

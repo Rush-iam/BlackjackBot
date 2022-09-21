@@ -3,14 +3,13 @@ from asyncio import Task
 
 from app.blackjack_bot.blackjack.player import Player, PlayerResult, PlayerState
 from app.blackjack_bot.telegram.dtos import User
-from app.blackjack_bot.telegram.inline_keyboard import InlineButton, InlineKeyboard
+from app.blackjack_bot.bot.inline_keyboard import InlineButton, InlineKeyboard
 
 from .base import StateHandler
 
 
 class PlayingHandler(StateHandler):
-    title: str = 'Ещё карту?'
-    timer: int = 10
+    title: str = 'Играем'
     timer_task: Task | None = None
     query_commands: list[str] = ['hit', 'stand']
 
@@ -76,10 +75,10 @@ class PlayingHandler(StateHandler):
         elif data == 'stand':
             player.state = PlayerState.completed
 
-        await self.next_player_transition(force_render=True)
+        await self.next_player_transition()
         return False, None
 
-    async def next_round_transition(self, force_render: bool = False) -> None:
+    async def next_round_transition(self) -> None:
         active_players_count = 0
         for player in self.game.players:
             if player.state is PlayerState.waiting:
@@ -87,20 +86,19 @@ class PlayingHandler(StateHandler):
                 active_players_count += 1
         if active_players_count:
             self.game.round += 1
-            await self.next_player_transition(force_render)
+            await self.next_player_transition()
         else:
             await self.finish()
 
-    async def next_player_transition(self, force_render: bool = False) -> None:
+    async def next_player_transition(self) -> None:
         player = self.get_next_active_player()
         if not player:
-            await self.next_round_transition(force_render)
+            await self.next_round_transition()
             return
 
         self.current_player = player
-        self.timer_task = self.game.run_after(self.timer, self.player_timeout)
-        if force_render:
-            await self.game.render_message()
+        self.timer_task = self.game.timer.run_after(self.player_timeout)
+        await self.game.render_message()
 
     def get_next_active_player(self) -> Player | None:
         return next(
@@ -115,7 +113,7 @@ class PlayingHandler(StateHandler):
     async def player_timeout(self) -> None:
         if self.current_player:
             self.current_player.state = PlayerState.completed
-        await self.next_player_transition(force_render=True)
+        await self.next_player_transition()
 
     def render_lines(self) -> list[str]:
         lines: list[str] = []

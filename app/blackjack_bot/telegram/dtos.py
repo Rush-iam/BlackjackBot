@@ -117,6 +117,11 @@ class EditMessageTextRequest(BaseModel):
     # | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply
 
 
+class DeleteMessageRequest(BaseModel):
+    chat_id: int | str
+    message_id: int
+
+
 class AnswerCallbackQueryRequest(BaseModel):
     callback_query_id: str
     text: str | None = None

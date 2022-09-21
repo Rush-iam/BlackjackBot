@@ -8,11 +8,7 @@ class FinishedHandler(StateHandler):
     title: str = 'Игра окончена'
 
     async def start(self) -> None:
-        for player in self.game.players:
-            player.state = PlayerState.idle
-        await self.game.store.finish_game(
-            game_id=self.game.id, players=self.game.players
-        )
+        await self.game.finish_game()
 
     async def handle(self, tg_player: User, data: str) -> tuple[bool, str | None]:
         pass
@@ -29,11 +25,11 @@ class FinishedHandler(StateHandler):
         for player in self.game.players:
             match player.result:
                 case PlayerResult.won:
-                    result_value = f'+{player.bet}💰'
+                    result_value = f'+{player.bet}$💰'
                 case PlayerResult.lost:
-                    result_value = f'-{player.bet}💥'
+                    result_value = f'-{player.bet}$💥'
                 case PlayerResult.draw:
-                    result_value = '0➗'
+                    result_value = '0$➗'
                 case _:
                     result_value = 'неизвестно. Как так вышло?'
             results.append(f'{player.name}: {result_value}')

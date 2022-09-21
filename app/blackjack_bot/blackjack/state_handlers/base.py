@@ -1,8 +1,8 @@
 import abc
 import typing
 
+from app.blackjack_bot.bot.inline_keyboard import InlineKeyboard
 from app.blackjack_bot.telegram.dtos import User
-from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard
 
 
 if typing.TYPE_CHECKING:

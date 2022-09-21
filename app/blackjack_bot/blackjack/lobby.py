@@ -1,17 +1,17 @@
 from functools import partial
-from typing import Awaitable, Callable, cast
 
 from app.blackjack_bot.bot.accessor import BotAccessor
+from app.blackjack_bot.bot.message_editor import MessageEditor
 from app.blackjack_bot.telegram.dtos import CallbackQuery, Message
-from app.blackjack_bot.telegram.inline_keyboard import InlineKeyboard
 from app.packages.logger import logger
 
 from .game import Game, GameState
 from .store import BlackjackStore
+from .timer import Timer
 
 
 class Lobby:
-    name = 'blackjack'
+    prefix = 'blackjack'
 
     def __init__(self, bot: BotAccessor, store: BlackjackStore):
         bot.register_command_handler('/start', self.new_game_router)
@@ -21,7 +21,7 @@ class Lobby:
             '/top_global', partial(self.top_router, top_global=True)
         )
         bot.register_query_handler(
-            prefix=self.name, function=self.callback_query_router
+            prefix=self.prefix, function=self.callback_query_router
         )
         self.bot: BotAccessor = bot
         self.active_games: dict[int, Game] = {}
@@ -30,7 +30,7 @@ class Lobby:
     async def new_game_router(self, message: Message) -> None:
         game = self.active_games.get(message.chat.id)
         if game and game.state is not GameState.finished:
-            return
+            return  # TODO: reply with point
         await self.new_game(message.chat.id)
 
     async def my_balance_router(self, message: Message) -> None:
@@ -56,20 +56,22 @@ class Lobby:
         )
 
     async def new_game(self, chat_id: int) -> None:
-        game_message = await self.bot.send_message(chat_id, '🃏 ...')
-        if not game_message:
+        game_message = await MessageEditor.create(
+            self.bot, chat_id, '🃏 ...', self.prefix
+        )
+        timer_message = await MessageEditor.create(
+            self.bot, chat_id, Timer.timer_emojis[0], self.prefix
+        )
+        if not game_message or not timer_message:
             return
 
-        message_editor = cast(
-            Callable[[str, InlineKeyboard | None], Awaitable[None]],
-            partial(self.message_editor, game_message.chat.id, game_message.message_id),
-        )
         await self.store.create_chat_if_not_exists(tg_chat_id=chat_id)
         game_id = await self.store.create_game(tg_chat_id=chat_id)
         game = Game(
             game_id=game_id,
             chat_id=chat_id,
-            message_editor=message_editor,
+            game_message=game_message,
+            timer_message=timer_message,
             store=self.store,
         )
         self.active_games[chat_id] = game
@@ -89,14 +91,3 @@ class Lobby:
         return await game.handle_event(
             tg_player=callback_query.from_, data=callback_query.data
         )
-
-    async def message_editor(
-        self,
-        chat_id: int | str,
-        message_id: int,
-        text: str,
-        keyboard: InlineKeyboard | None = None,
-    ) -> None:
-        if keyboard:
-            keyboard.set_callback_data_prefix(self.name)
-        await self.bot.edit_message(chat_id, message_id, text, keyboard)
