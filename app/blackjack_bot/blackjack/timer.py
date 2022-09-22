@@ -10,7 +10,7 @@ class Timer:
         '🕛', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚'
     )
 
-    def __init__(self, timer_message: MessageEditor):
+    def __init__(self, timer_message: MessageEditor | None):
         self.timer_message: MessageEditor = timer_message
         self.tasks_ref: set[Task] = set()  # protects Task from garbage collector
 
@@ -26,13 +26,15 @@ class Timer:
         return task
 
     async def delete(self) -> None:
-        await self.timer_message.delete()
+        if self.timer_message:
+            await self.timer_message.delete()
 
     async def _run_after(
         self, function: Callable[[], Awaitable[None]], seconds: int = 12
     ) -> None:
         while seconds:
-            await self.timer_message(self._countdown_emoji(seconds))
+            if self.timer_message:
+                await self.timer_message(self._countdown_emoji(seconds))
             await sleep(1)
             seconds -= 1
         await function()

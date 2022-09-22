@@ -50,7 +50,7 @@ class Deck:
     set: list[Card] = [Card(*card) for card in itertools.product(ranks.keys(), suits)]
 
     def __init__(self, empty: bool = False):
-        self.cards: list[Card] = [] if empty else self.set
+        self.cards: list[Card] = [] if empty else self.set.copy()
 
     def __repr__(self) -> str:
         return ' '.join(repr(card) for card in self.cards)
@@ -75,8 +75,8 @@ class Deck:
     def add_card(self, card: Card) -> None:
         self.cards.append(card)
 
-    def take_random_card(self) -> Card | None:
+    def take_random_card_infinite(self) -> Card:
         if not self.cards:
-            return None
+            self.cards = self.set.copy()
         random_index = random.randrange(len(self.cards))
         return self.cards.pop(random_index)

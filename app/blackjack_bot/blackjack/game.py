@@ -29,7 +29,7 @@ class Game:
         game_id: int,
         chat_id: int | str,
         game_message: MessageEditor,
-        timer_message: MessageEditor,
+        timer_message: MessageEditor | None,
         store: BlackjackStore,
     ):
         self.id: int = game_id

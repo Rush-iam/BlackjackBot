@@ -1,10 +1,13 @@
+import os
 from typing import Any, Awaitable, Callable, cast
 
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client import _RequestContextManager
+from aiolimiter import AsyncLimiter
 from pydantic import BaseModel
 
 from app.packages.config import Config, TelegramConfig
+from app.packages.logger import logger
 
 from .constants import TelegramMethod
 from .dtos import (
@@ -22,10 +25,15 @@ from .utils import build_query, log_error
 
 
 class TelegramAccessor:
+    rps_limit: int = int(os.getenv('TG_LIMITER', '3'))
+
     def __init__(self, config: Config):
         self._config: TelegramConfig = config.telegram
         self._session: ClientSession | None = None
         self._updates_handler: Callable[[list[Update]], Awaitable[None]] | None = None
+        self.limiter: AsyncLimiter = AsyncLimiter(
+            max_rate=self.rps_limit, time_period=1
+        )
 
     def register_updates_handler(
         self, updates_handler: Callable[[list[Update]], Awaitable[None]]
@@ -100,7 +108,7 @@ class TelegramAccessor:
     async def _message_request(
         self, method: TelegramMethod, request_payload: BaseModel
     ) -> Message | None:
-        async with self._request(method, request_payload) as response:
+        async with await self._request(method, request_payload) as response:
             tg_response = TelegramResponse(**await response.json())
             if not tg_response.ok:
                 await log_error(response)
@@ -110,20 +118,22 @@ class TelegramAccessor:
     async def _bool_request(
         self, method: TelegramMethod, request_payload: BaseModel
     ) -> bool:
-        async with self._request(method, request_payload) as response:
+        async with await self._request(method, request_payload) as response:
             tg_response = TelegramResponse(**await response.json())
             if not tg_response.ok:
                 await log_error(response)
                 return False
             return cast(bool, tg_response.result)
 
-    def _request(
+    async def _request(
         self, method: TelegramMethod, request_payload: BaseModel
     ) -> _RequestContextManager:
+        logger.info('%s: %s', method, request_payload.dict(exclude_none=True))
         if not self._session:
             raise Exception('TelegramAccessor: edit_message_text: no session')
-        return self._session.post(
-            url=build_query(self._config.token, method),
-            json=request_payload.dict(exclude_none=True),
-            timeout=ClientTimeout(total=5),
-        )
+        async with self.limiter:
+            return self._session.post(
+                url=build_query(self._config.token, method),
+                json=request_payload.dict(exclude_none=True),
+                timeout=ClientTimeout(total=5),
+            )

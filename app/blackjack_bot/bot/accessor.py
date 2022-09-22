@@ -66,7 +66,8 @@ class BotAccessor:
         for entity in message.entities[:1]:
             if entity.type is MessageEntityType.bot_command:
                 command = message.text[entity.offset : entity.offset + entity.length]
-                if command_handler := self.commands.get(command):
+                command_without_mention = command.split('@')[0]
+                if command_handler := self.commands.get(command_without_mention):
                     await command_handler(message)
 
     async def _handle_callback_query(self, callback_query: CallbackQuery) -> None:

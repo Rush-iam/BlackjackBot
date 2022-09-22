@@ -32,3 +32,10 @@ class MessageEntityType(GeneratedStrEnum):
     text_link = auto()
     text_mention = auto()
     custom_emoji = auto()
+
+
+class ChatType(GeneratedStrEnum):
+    private = auto()
+    group = auto()
+    supergroup = auto()
+    channel = auto()

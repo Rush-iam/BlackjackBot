@@ -18,15 +18,15 @@ class PlayingHandler(StateHandler):
         self.current_player: Player | None = None
 
     async def start(self) -> None:
-        self.game.dealer.hand.add_card(self.game.deck.take_random_card())
+        self.game.dealer.hand.add_card(self.game.deck.take_random_card_infinite())
         for player in self.game.players:
-            player.hand.add_card(self.game.deck.take_random_card())
-            player.hand.add_card(self.game.deck.take_random_card())
+            player.hand.add_card(self.game.deck.take_random_card_infinite())
+            player.hand.add_card(self.game.deck.take_random_card_infinite())
         await self.next_round_transition()
 
     async def finish(self) -> None:
         while True:
-            self.game.dealer.hand.add_card(self.game.deck.take_random_card())
+            self.game.dealer.hand.add_card(self.game.deck.take_random_card_infinite())
             dealer_min, dealer_max = self.game.dealer.hand.blackjack_values
             if dealer_min >= 16 or dealer_max == 21:
                 break
@@ -66,7 +66,7 @@ class PlayingHandler(StateHandler):
             self.timer_task.cancel()
         player = self.current_player
         if data == 'hit':
-            player.hand.add_card(self.game.deck.take_random_card())
+            player.hand.add_card(self.game.deck.take_random_card_infinite())
             min_value, max_value = player.hand.blackjack_values
             if min_value > 21:
                 player.state = PlayerState.completed

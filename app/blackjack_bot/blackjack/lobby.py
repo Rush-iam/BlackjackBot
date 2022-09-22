@@ -2,6 +2,7 @@ from functools import partial
 
 from app.blackjack_bot.bot.accessor import BotAccessor
 from app.blackjack_bot.bot.message_editor import MessageEditor
+from app.blackjack_bot.telegram.constants import ChatType
 from app.blackjack_bot.telegram.dtos import CallbackQuery, Message
 from app.packages.logger import logger
 
@@ -31,7 +32,35 @@ class Lobby:
         game = self.active_games.get(message.chat.id)
         if game and game.state is not GameState.finished:
             return  # TODO: reply with point
-        await self.new_game(message.chat.id)
+
+        enable_timer = message.chat.type is ChatType.private
+        await self._new_game(message.chat.id, enable_timer=enable_timer)
+
+    async def _new_game(self, chat_id: int, enable_timer: bool = True) -> None:
+        game_message = await MessageEditor.create(
+            self.bot, chat_id, '🃏 ...', self.prefix
+        )
+        if not game_message:
+            return
+
+        if enable_timer:
+            timer_message = await MessageEditor.create(
+                self.bot, chat_id, Timer.timer_emojis[0], self.prefix
+            )
+        else:
+            timer_message = None
+
+        await self.store.create_chat_if_not_exists(tg_chat_id=chat_id)
+        game_id = await self.store.create_game(tg_chat_id=chat_id)
+        game = Game(
+            game_id=game_id,
+            chat_id=chat_id,
+            game_message=game_message,
+            timer_message=timer_message,
+            store=self.store,
+        )
+        self.active_games[chat_id] = game
+        await game.start()
 
     async def my_balance_router(self, message: Message) -> None:
         player_id = message.from_.id
@@ -54,28 +83,6 @@ class Lobby:
             chat_id=message.chat.id,
             text=f'{title}\n\n{lines}',
         )
-
-    async def new_game(self, chat_id: int) -> None:
-        game_message = await MessageEditor.create(
-            self.bot, chat_id, '🃏 ...', self.prefix
-        )
-        timer_message = await MessageEditor.create(
-            self.bot, chat_id, Timer.timer_emojis[0], self.prefix
-        )
-        if not game_message or not timer_message:
-            return
-
-        await self.store.create_chat_if_not_exists(tg_chat_id=chat_id)
-        game_id = await self.store.create_game(tg_chat_id=chat_id)
-        game = Game(
-            game_id=game_id,
-            chat_id=chat_id,
-            game_message=game_message,
-            timer_message=timer_message,
-            store=self.store,
-        )
-        self.active_games[chat_id] = game
-        await game.start()
 
     async def callback_query_router(self, callback_query: CallbackQuery) -> str | None:
         if (

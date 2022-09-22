@@ -4,14 +4,15 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, conbytes, constr
 
-from .constants import MessageEntityType
+from .constants import MessageEntityType, ChatType
+
+
+class ResponseParameters(BaseModel):
+    migrate_to_chat_id: int | None = None
+    retry_after: int | None = None
 
 
 class TelegramResponse(BaseModel):
-    class ResponseParameters:
-        migrate_to_chat_id: int | None = None
-        retry_after: int | None = None
-
     ok: bool
     result: Any | None = None
     description: str | None = None
@@ -41,7 +42,7 @@ class User(BaseModel):
 
 class Chat(BaseModel):
     id: int
-    type: Literal['private', 'group', 'supergroup', 'channel']
+    type: ChatType
     title: str | None = None
     username: str | None = None
     first_name: str | None = None

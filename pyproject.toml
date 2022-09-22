@@ -16,6 +16,7 @@ pydantic = {extras = ["dotenv", "email"], version = "^1.10.1"}
 SQLAlchemy = "^1.4.40"
 psycopg = {extras = ["binary"], version = "^3.1"}
 psycopg2-binary = "^2.9.3"
+aiolimiter = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 aiohttp-devtools = "^1.0.post0"
