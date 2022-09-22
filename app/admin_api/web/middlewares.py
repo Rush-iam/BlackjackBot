@@ -50,9 +50,12 @@ async def auth_middleware(
     request: Request, handler: Callable[[Request], Awaitable[StreamResponse]]
 ) -> StreamResponse:
     handler_view = cast(Type[AbstractView], request.match_info.handler)
-    if issubclass(handler_view, AuthView):
-        session = await get_session(request)
-        if not session:
-            raise HTTPUnauthorized
-        request['admin'] = Admin(**session['admin'])
+    try:
+        if issubclass(handler_view, AuthView):
+            session = await get_session(request)
+            if not session:
+                raise HTTPUnauthorized
+            request['admin'] = Admin(**session['admin'])
+    except TypeError:
+        pass
     return await handler(request)
