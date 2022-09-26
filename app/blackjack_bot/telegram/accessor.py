@@ -1,5 +1,5 @@
 import os
-from typing import Any, Awaitable, Callable, cast
+from typing import Any, Awaitable, Callable
 
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client import _RequestContextManager
@@ -12,13 +12,14 @@ from app.packages.logger import logger
 from .constants import TelegramMethod
 from .dtos import (
     AnswerCallbackQueryRequest,
+    DeleteMessageRequest,
     EditMessageTextRequest,
     InlineKeyboardMarkup,
     Message,
     SendMessageRequest,
     TelegramResponse,
     Update,
-    UpdateRequest, DeleteMessageRequest,
+    UpdateRequest,
 )
 from .poller import Poller
 from .utils import build_query, log_error
@@ -43,7 +44,10 @@ class TelegramAccessor:
     async def run_loop(self) -> None:
         self._session = ClientSession()
         if self._updates_handler is None:
-            raise Exception('TelegramAccessor: connect: updates_handler not set')
+            raise Exception(
+                f'{self.__class__.__name__}: {self.run_loop.__name__}: '
+                f'updates_handler not set'
+            )
         poller = Poller(
             config=self._config,
             session=self._session,
@@ -64,7 +68,8 @@ class TelegramAccessor:
             text=text,
             **kwargs,
         )
-        return await self._message_request(TelegramMethod.sendMessage, request)
+        result = await self._request(TelegramMethod.sendMessage, request)
+        return Message.parse_obj(result) if result else None
 
     async def edit_message_text(
         self,
@@ -81,14 +86,15 @@ class TelegramAccessor:
             reply_markup=reply_markup,
             **kwargs,
         )
-        return await self._message_request(TelegramMethod.editMessageText, request)
+        result = await self._request(TelegramMethod.editMessageText, request)
+        return Message.parse_obj(result) if result else None
 
     async def delete_message(self, chat_id: int | str, message_id: int) -> bool:
         request = DeleteMessageRequest(
             chat_id=chat_id,
             message_id=message_id,
         )
-        return await self._bool_request(TelegramMethod.deleteMessage, request)
+        return await self._request(TelegramMethod.deleteMessage, request)
 
     async def answer_callback_query(
         self,
@@ -103,35 +109,26 @@ class TelegramAccessor:
             show_alert=show_alert,
             **kwargs,
         )
-        return await self._bool_request(TelegramMethod.answerCallbackQuery, request)
+        result = await self._request(TelegramMethod.answerCallbackQuery, request)
+        return bool(result)
 
-    async def _message_request(
-        self, method: TelegramMethod, request_payload: BaseModel
-    ) -> Message | None:
-        async with await self._request(method, request_payload) as response:
+    async def _request(self, method: TelegramMethod, request_payload: BaseModel) -> Any:
+        async with await self._request_call(method, request_payload) as response:
             tg_response = TelegramResponse(**await response.json())
             if not tg_response.ok:
                 await log_error(response)
                 return None
-            return Message.parse_obj(tg_response.result)
+            return tg_response.result
 
-    async def _bool_request(
-        self, method: TelegramMethod, request_payload: BaseModel
-    ) -> bool:
-        async with await self._request(method, request_payload) as response:
-            tg_response = TelegramResponse(**await response.json())
-            if not tg_response.ok:
-                await log_error(response)
-                return False
-            return cast(bool, tg_response.result)
-
-    async def _request(
+    async def _request_call(
         self, method: TelegramMethod, request_payload: BaseModel
     ) -> _RequestContextManager:
         logger.info('%s: %s', method, request_payload.dict(exclude_none=True))
         if not self._session:
-            raise Exception('TelegramAccessor: edit_message_text: no session')
-        async with self.limiter:
+            raise Exception(
+                f'{self.__class__.__name__}: {self._request_call.__name__}: no session'
+            )
+        async with self.limiter:  # TODO: per chat limiter, do not limit answerQuery
             return self._session.post(
                 url=build_query(self._config.token, method),
                 json=request_payload.dict(exclude_none=True),

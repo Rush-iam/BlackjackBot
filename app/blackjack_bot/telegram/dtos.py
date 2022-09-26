@@ -4,7 +4,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, conbytes, constr
 
-from .constants import MessageEntityType, ChatType
+from .constants import ChatType, MessageEntityType
 
 
 class ResponseParameters(BaseModel):

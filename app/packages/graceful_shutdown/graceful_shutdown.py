@@ -2,7 +2,7 @@ import asyncio
 import sys
 from signal import SIGINT, SIGTERM, signal, strsignal
 from types import FrameType
-from typing import Callable, Awaitable
+from typing import Awaitable, Callable
 
 from app.packages.logger import logger
 

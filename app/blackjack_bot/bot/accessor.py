@@ -2,8 +2,12 @@ from typing import Awaitable, Callable
 
 from app.blackjack_bot.telegram.accessor import TelegramAccessor
 from app.blackjack_bot.telegram.constants import MessageEntityType
-from app.blackjack_bot.telegram.dtos import CallbackQuery, Message, Update, \
-    InlineKeyboardMarkup
+from app.blackjack_bot.telegram.dtos import (
+    CallbackQuery,
+    InlineKeyboardMarkup,
+    Message,
+    Update,
+)
 from app.packages.logger import logger
 
 
@@ -50,13 +54,10 @@ class BotAccessor:
 
     async def _handle_updates(self, updates: list[Update]) -> None:
         for update in updates:
-            await self._handle_update(update)
-
-    async def _handle_update(self, update: Update) -> None:
-        if message := update.message:
-            await self._handle_message(message)
-        elif callback_query := update.callback_query:
-            await self._handle_callback_query(callback_query)
+            if message := update.message:
+                await self._handle_message(message)
+            elif callback_query := update.callback_query:
+                await self._handle_callback_query(callback_query)
 
     async def _handle_message(self, message: Message) -> None:
         if message.from_:

@@ -34,6 +34,7 @@ class Lobby:
             return  # TODO: reply with point
 
         enable_timer = message.chat.type is ChatType.private
+        # TODO: autoregister without timer if ChatType.private
         await self._new_game(message.chat.id, enable_timer=enable_timer)
 
     async def _new_game(self, chat_id: int, enable_timer: bool = True) -> None:

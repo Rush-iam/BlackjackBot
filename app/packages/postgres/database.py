@@ -2,7 +2,7 @@ import sys
 from typing import Any, cast
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
 
 from app.packages.logger import logger
 

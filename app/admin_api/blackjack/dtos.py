@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from app.admin_api.web.base.base_dto import OrmItem, DatabaseItem
+from app.admin_api.web.base.base_dto import DatabaseItem, OrmItem
 
 
 class Chat(OrmItem):

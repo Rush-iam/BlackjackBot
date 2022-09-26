@@ -28,12 +28,18 @@ class InlineKeyboard:
         for row in range(len(self._buttons)):
             row_dict = self._buttons.get(row)
             if not row_dict:
-                raise Exception('InlineKeyboard: missing element in button row')
+                raise Exception(
+                    f'{self.__class__.__name__}: {self.to_reply_markup.__name__}: '
+                    f'missing element in button row'
+                )
             tg_buttons_list.append([])
             for column in range(len(row_dict)):
                 button = row_dict.get(column)
                 if not button:
-                    raise Exception('InlineKeyboard: missing element in button column')
+                    raise Exception(
+                        f'{self.__class__.__name__}: {self.to_reply_markup.__name__}: '
+                        f'missing element in button column'
+                    )
                 if button.callback_data:
                     button.callback_data = (
                         f'{self._callback_data_prefix} {button.callback_data}'

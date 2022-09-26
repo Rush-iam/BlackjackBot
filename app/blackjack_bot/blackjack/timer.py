@@ -7,7 +7,18 @@ from app.packages.logger import logger
 
 class Timer:
     timer_emojis: tuple[str, ...] = (
-        '🕛', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚'
+        '🕛',
+        '🕐',
+        '🕑',
+        '🕒',
+        '🕓',
+        '🕔',
+        '🕕',
+        '🕖',
+        '🕗',
+        '🕘',
+        '🕙',
+        '🕚',
     )
 
     def __init__(self, timer_message: MessageEditor | None):
@@ -20,9 +31,7 @@ class Timer:
         task = create_task(self._run_after(function, seconds))
         self.tasks_ref.add(task)
         task.add_done_callback(self.tasks_ref.discard)
-        logger.info(
-            'seconds: %d, function: %s', seconds, function.__name__
-        )
+        logger.info('seconds: %d, function: %s', seconds, function.__name__)
         return task
 
     async def delete(self) -> None:

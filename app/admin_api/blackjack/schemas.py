@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from marshmallow import fields
 
 from app.admin_api.web.base.base_schema import BaseSchema

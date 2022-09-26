@@ -2,8 +2,8 @@ import itertools
 from asyncio import Task
 
 from app.blackjack_bot.blackjack.player import Player, PlayerResult, PlayerState
-from app.blackjack_bot.telegram.dtos import User
 from app.blackjack_bot.bot.inline_keyboard import InlineButton, InlineKeyboard
+from app.blackjack_bot.telegram.dtos import User
 
 from .base import StateHandler
 
@@ -28,7 +28,7 @@ class PlayingHandler(StateHandler):
         while True:
             self.game.dealer.hand.add_card(self.game.deck.take_random_card_infinite())
             dealer_min, dealer_max = self.game.dealer.hand.blackjack_values
-            if dealer_min >= 16 or dealer_max == 21:
+            if dealer_min >= 17 or dealer_max == 21:
                 break
             # TODO: emulate 1 sec delay?
 
@@ -57,7 +57,10 @@ class PlayingHandler(StateHandler):
 
     async def handle(self, tg_player: User, data: str) -> tuple[bool, str | None]:
         if not self.current_player:
-            raise Exception('PlayingHandler: handle: no current player')
+            raise Exception(
+                f'{self.__class__.__name__}: {self.handle.__name__}: '
+                f'no current player'
+            )
 
         if self.current_player.id != tg_player.id:
             return False, 'Погоди-ка, это не твой ход'

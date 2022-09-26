@@ -66,14 +66,17 @@ class Game:
 
     async def handle_event(self, tg_player: User, data: str) -> str | None:
         if not self.state_handler:
-            raise Exception('Game: handle_event: no state handler set')
+            raise Exception(
+                f'{self.__class__.__name__}: {self.handle_event.__name__}: '
+                f'state handler not set'
+            )
 
         if data not in self.state_handler.query_commands:
             logger.warning('no handler for query data: %s', data)
             return None
         is_updated, answer = await self.state_handler.handle(tg_player, data)
         if is_updated:
-            await self.render_message()
+            await self.render_message()  # stack up render requests in 1sec delay buffer
         return answer
 
     async def finish_game(self) -> None:

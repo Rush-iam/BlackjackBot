@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from sqlalchemy import update, select, desc
+from sqlalchemy import desc, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
-from app.blackjack_bot.blackjack.models import ChatModel, PlayerModel, GameModel
+from app.blackjack_bot.blackjack.models import ChatModel, GameModel, PlayerModel
 from app.blackjack_bot.blackjack.player import Player
 from app.packages.postgres.accessor import DatabaseAccessor
 
@@ -51,8 +51,9 @@ class BlackjackStore(DatabaseAccessor):
                     entity=PlayerModel,
                     ident=player_id,
                     options=[
-                        selectinload(PlayerModel.games), selectinload(PlayerModel.chats)
-                    ]
+                        selectinload(PlayerModel.games),
+                        selectinload(PlayerModel.chats),
+                    ],
                 )
                 player.games.append(game)
                 player.chats.append(chat)

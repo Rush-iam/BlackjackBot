@@ -2,10 +2,10 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.orm import selectinload
 
-from app.blackjack_bot.blackjack.models import ChatModel, PlayerModel, GameModel
+from app.blackjack_bot.blackjack.models import ChatModel, GameModel, PlayerModel
 from app.packages.postgres.accessor import DatabaseAccessor
 
-from .dtos import Chat, Player, Game
+from .dtos import Chat, Game, Player
 
 
 class BlackjackAccessor(DatabaseAccessor):
@@ -32,4 +32,3 @@ class BlackjackAccessor(DatabaseAccessor):
             )
             games = result.scalars().all()
         return [Game.from_orm(game) for game in games]
-
