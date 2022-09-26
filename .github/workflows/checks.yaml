@@ -1,0 +1,58 @@
+name: Pytest/Linters checks
+
+on: [push, pull_request]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_DIR: app
+      TESTS_DIR: tests
+      ADMIN__EMAIL: test@test.com
+      ADMIN__PASSWORD: admin
+      APP__COOKIE_SECRET_KEY: 32_characters_secret_key_abcdefg
+      DATABASE__USERNAME: postgres
+      DATABASE__PASSWORD: postgres
+      DATABASE__NAME: postgres
+      TELEGRAM__TOKEN: abc
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: ${{env.DATABASE__PASSWORD}}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - uses: actions/setup-python@v4
+        with:
+            python-version: '3.10'
+            cache: 'poetry'
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Tests pytest
+        run: poetry run pytest
+
+      - name: Linter Black
+        if: always()
+        run: poetry run black $PROJECT_DIR $TESTS_DIR
+
+      - name: Linter Pylint
+        if: always()
+        run: poetry run pylint -j 0 $PROJECT_DIR $TESTS_DIR
+
+#      - name: Linter Mypy
+#        if: always()
+#        run: poetry run mypy $PROJECT_DIR

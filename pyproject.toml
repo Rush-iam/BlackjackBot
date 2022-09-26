@@ -1,0 +1,120 @@
+[tool.poetry]
+name = "BJBot"
+version = "0.1.0"
+description = "Blackjack TG Bot"
+authors = ["Artyom Kornikov <rushiam@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiohttp = "^3.8.3"
+aiohttp-apispec = "^3.0.0b2"
+aiohttp-session = {extras = ["secure"], version = "^2.11.0"}
+aiolimiter = "^1.0.0"
+asyncpg = "^0.26.0"
+alembic = "^1.8.1"
+marshmallow = "^3.18.0"
+psycopg = {extras = ["binary"], version = "^3.1.2"}
+psycopg2-binary = "^2.9.3"
+pydantic = {extras = ["dotenv", "email"], version = "^1.10.2"}
+SQLAlchemy = "^1.4.41"
+
+[tool.poetry.dev-dependencies]
+aiohttp-devtools = "^1.0.post0"
+black = "^22.8.0"
+isort = "^5.10.1"
+mypy = "^0.971"
+pylint = "^2.15.3"
+pytest = "^7.1.3"
+pytest-aiohttp = "^1.0.4"
+pytest-cov = "^3.0.0"
+pytest-xdist = "^2.5.0"
+SQLAlchemy-Utils = "^0.38.3"
+sqlalchemy2-stubs = "^0.0.2-alpha.27"
+types-psycopg2 = "^2.9.21"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+# PYTEST
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# Remove filterwarnings after apispec 6.x+ version upgrade:
+filterwarnings = [
+    "ignore:distutils Version classes are deprecated",
+    "ignore:msvc9compiler is deprecated",
+]
+
+[tool.coverage.html]
+directory = "pytest-cov-report"
+
+# LINTERS
+
+# mypy
+[tool.mypy]
+no_error_summary = true
+check_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+no_implicit_reexport = true
+plugins = [
+  "pydantic.mypy",
+  "sqlalchemy.ext.mypy.plugin",
+]
+
+[[tool.mypy.overrides]]
+module = "aiohttp_apispec.*"
+ignore_missing_imports = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+warn_untyped_fields = true
+
+# pylint
+[tool.pylint.basic]
+good-names = ["db"]
+
+[tool.pylint.format]
+max-line-length = 88
+
+[tool.pylint.master]
+extension-pkg-allow-list = ["pydantic"]
+
+[tool.pylint.typecheck]
+ignored-classes='sqlalchemy.orm.session.sessionmaker'
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = [
+  "C0103",  # class constant name doesn't conform to UPPER_CASE
+  "C0114",  # missing-module-docstring
+  "C0115",  # missing-class-docstring (for api routes)
+  "C0116",  # missing-function-docstring
+  "E1102",  # not-callable (false positives)
+  "E1133",  # non-iterable value is used in an iterating context
+  "E1136",  # unsubscriptable-object (false positive getting str[0] from Optional[str])
+  "R0902",  # too-many-instance-attributes
+  "R0903",  # too-few-public-methods (for sqlalchemy tables and pydantic classes)
+  "R0913",  # too-many-arguments
+  "W0511",  # fix me / TO DO checks
+]
+
+# isort
+[tool.isort]
+profile = 'black'
+lines_after_imports = 2
+
+# black
+[tool.black]
+line-length = 88
+target-version = ['py310']
+skip-string-normalization = true
+check = true
+color = true
+diff = true
+quiet = true
