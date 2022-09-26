@@ -6,30 +6,31 @@ authors = ["Artyom Kornikov <rushiam@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-aiohttp = "^3.8.1"
+aiohttp = "^3.8.3"
 aiohttp-apispec = "^3.0.0b2"
 aiohttp-session = {extras = ["secure"], version = "^2.11.0"}
+aiolimiter = "^1.0.0"
 asyncpg = "^0.26.0"
 alembic = "^1.8.1"
-marshmallow = "^3.17.1"
-pydantic = {extras = ["dotenv", "email"], version = "^1.10.1"}
-SQLAlchemy = "^1.4.40"
-psycopg = {extras = ["binary"], version = "^3.1"}
+marshmallow = "^3.18.0"
+psycopg = {extras = ["binary"], version = "^3.1.2"}
 psycopg2-binary = "^2.9.3"
+pydantic = {extras = ["dotenv", "email"], version = "^1.10.2"}
+SQLAlchemy = "^1.4.41"
 
 [tool.poetry.dev-dependencies]
 aiohttp-devtools = "^1.0.post0"
+black = "^22.8.0"
 isort = "^5.10.1"
 mypy = "^0.971"
-pylint = "2.15.0"
+pylint = "^2.15.3"
 pytest = "^7.1.3"
 pytest-aiohttp = "^1.0.4"
 pytest-cov = "^3.0.0"
+pytest-xdist = "^2.5.0"
 SQLAlchemy-Utils = "^0.38.3"
 sqlalchemy2-stubs = "^0.0.2-alpha.27"
 types-psycopg2 = "^2.9.21"
-black = "^22.8.0"
-pytest-xdist = "^2.5.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -94,8 +95,12 @@ disable = [
   "C0114",  # missing-module-docstring
   "C0115",  # missing-class-docstring (for api routes)
   "C0116",  # missing-function-docstring
+  "E1102",  # not-callable (false positives)
   "E1133",  # non-iterable value is used in an iterating context
+  "E1136",  # unsubscriptable-object (false positive getting str[0] from Optional[str])
+  "R0902",  # too-many-instance-attributes
   "R0903",  # too-few-public-methods (for sqlalchemy tables and pydantic classes)
+  "R0913",  # too-many-arguments
   "W0511",  # fix me / TO DO checks
 ]
 

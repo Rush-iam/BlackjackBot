@@ -48,7 +48,6 @@ async def db(store: Store) -> Database:
     async with store.db.engine.begin() as session:
         for table in BaseMetadata.metadata.tables:
             await session.execute(text(f'TRUNCATE {table} CASCADE'))
-            await session.execute(text(f'ALTER SEQUENCE {table}_id_seq RESTART WITH 1'))
 
 
 @pytest.fixture

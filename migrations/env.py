@@ -8,7 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import context
 
+from app.admin_api.admin.models import *  # noqa
+from app.blackjack_bot.blackjack.models import *  # noqa
 from app.packages.postgres.metadata import BaseMetadata
+
 from app.packages.config import get_config
 
 # this is the Alembic Config object, which provides

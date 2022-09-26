@@ -2,16 +2,17 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field, conbytes, constr
 
-from .constants import MessageEntityType
+from .constants import ChatType, MessageEntityType
+
+
+class ResponseParameters(BaseModel):
+    migrate_to_chat_id: int | None = None
+    retry_after: int | None = None
 
 
 class TelegramResponse(BaseModel):
-    class ResponseParameters:
-        migrate_to_chat_id: int | None = None
-        retry_after: int | None = None
-
     ok: bool
     result: Any | None = None
     description: str | None = None
@@ -32,10 +33,16 @@ class User(BaseModel):
     can_read_all_group_messages: bool | None = None
     supports_inline_queries: bool | None = None
 
+    @property
+    def short_name(self) -> str:
+        if self.last_name:
+            return f'{self.first_name} {self.last_name[:1]}'
+        return self.first_name
+
 
 class Chat(BaseModel):
     id: int
-    type: Literal['private', 'group', 'supergroup', 'channel']
+    type: ChatType
     title: str | None = None
     username: str | None = None
     first_name: str | None = None
@@ -59,7 +66,33 @@ class Chat(BaseModel):
     # location: ChatLocation | None = None
 
 
-class MessageConfig(BaseModel):
+class MessageEntity(BaseModel):
+    type: MessageEntityType
+    offset: int
+    length: int
+    url: str | None = None  # 'text_link' only
+    user: User | None = None  # 'text_mention' only
+    language: str | None = None  # 'pre' only
+    custom_emoji_id: str | None = None  # 'custom_emoji' only
+
+
+class InlineKeyboardButton(BaseModel):
+    text: str
+    url: str | None = None
+    callback_data: Annotated[str | None, conbytes(min_length=1, max_length=64)] = None
+    # web_app: WebAppInfo | None = None
+    # login_url: LoginUrl | None = None
+    switch_inline_query: str | None = None
+    switch_inline_query_current_chat: str | None = None
+    # callback_game: CallbackGame | None = None
+    # pay: bool | None = None
+
+
+class InlineKeyboardMarkup(BaseModel):
+    inline_keyboard: list[list[InlineKeyboardButton]]
+
+
+class SendMessageRequest(BaseModel):
     chat_id: int | str
     text: Annotated[str, constr(min_length=1, max_length=4096)]
     parse_mode: str | None = None
@@ -69,9 +102,33 @@ class MessageConfig(BaseModel):
     protect_content: bool | None = None
     reply_to_message_id: int | None = None
     allow_sending_without_reply: bool | None = None
-    # reply_markup: (
-    #     InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply
-    # ) = None
+    reply_markup: InlineKeyboardMarkup | None = None
+    # | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply
+
+
+class EditMessageTextRequest(BaseModel):
+    text: Annotated[str, constr(min_length=1, max_length=4096)]
+    chat_id: int | str | None = None
+    message_id: int | None = None
+    inline_message_id: str | None = None
+    parse_mode: str | None = None
+    entities: list[MessageEntity] | None = None
+    disable_web_page_preview: bool | None = None
+    reply_markup: InlineKeyboardMarkup | None = None
+    # | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply
+
+
+class DeleteMessageRequest(BaseModel):
+    chat_id: int | str
+    message_id: int
+
+
+class AnswerCallbackQueryRequest(BaseModel):
+    callback_query_id: str
+    text: str | None = None
+    show_alert: bool | None = None
+    url: str | None = None
+    cache_time: int | None = None
 
 
 class Message(BaseModel):
@@ -94,7 +151,7 @@ class Message(BaseModel):
     media_group_id: str | None = None
     author_signature: str | None = None
     text: str | None = None
-    # entities: list[MessageEntity] | None = None
+    entities: list[MessageEntity] | None = None
     # animation: Animation | None = None
     # audio: Audio | None = None
     # document: Document | None = None
@@ -133,17 +190,7 @@ class Message(BaseModel):
     # video_chat_ended: VideoChatEnded | None = None
     # video_chat_participants_invited: VideoChatParticipantsInvited | None = None
     # web_app_data: WebAppData | None = None
-    # reply_markup: InlineKeyboardMarkup | None = None
-
-
-class MessageEntity:
-    type: MessageEntityType
-    offset: int
-    length: int
-    url: str | None = None  # 'text_link' only
-    user: User | None = None  # 'text_mention' only
-    language: str | None = None  # 'pre' only
-    custom_emoji_id: str | None = None  # 'custom_emoji' only
+    reply_markup: InlineKeyboardMarkup | None = None
 
 
 class CallbackQuery(BaseModel):
@@ -156,7 +203,7 @@ class CallbackQuery(BaseModel):
     game_short_name: str | None = None
 
 
-class UpdateConfig(BaseModel):
+class UpdateRequest(BaseModel):
     offset: int | None = None
     limit: int | None = None
     timeout: int | None = None

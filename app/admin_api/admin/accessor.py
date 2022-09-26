@@ -28,6 +28,8 @@ class AdminAccessor(DatabaseAccessor):
                 password=sha256(password.encode()).hexdigest(),
             )
             db.add(admin)
+            await db.commit()
+
         return Admin.from_orm(admin)
 
     async def get_by_email(self, email: str) -> Admin | None:

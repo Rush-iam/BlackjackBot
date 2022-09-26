@@ -1,19 +1,18 @@
-from enum import Enum, auto
+from enum import auto
+
+from app.packages.enum_generator import GeneratedStrEnum
 
 
 API_URL = 'https://api.telegram.org/bot'
-
-
-class GeneratedStrEnum(str, Enum):
-    @staticmethod
-    def _generate_next_value_(name, start, count, last_values):
-        return name
 
 
 class TelegramMethod(GeneratedStrEnum):
     getMe = auto()
     getUpdates = auto()
     sendMessage = auto()
+    editMessageText = auto()
+    deleteMessage = auto()
+    answerCallbackQuery = auto()
 
 
 class MessageEntityType(GeneratedStrEnum):
@@ -33,3 +32,10 @@ class MessageEntityType(GeneratedStrEnum):
     text_link = auto()
     text_mention = auto()
     custom_emoji = auto()
+
+
+class ChatType(GeneratedStrEnum):
+    private = auto()
+    group = auto()
+    supergroup = auto()
+    channel = auto()
