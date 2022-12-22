@@ -1,18 +1,16 @@
-from enum import auto
-
-from app.packages.enum_generator import GeneratedStrEnum
+from enum import StrEnum, auto
 
 from .deck import Deck
 
 
-class PlayerState(GeneratedStrEnum):
+class PlayerState(StrEnum):
     idle = auto()
     waiting = auto()
     playing = auto()
     completed = auto()
 
 
-class PlayerResult(GeneratedStrEnum):
+class PlayerResult(StrEnum):
     none = auto()
     won = auto()
     lost = auto()

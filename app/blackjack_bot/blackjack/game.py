@@ -1,8 +1,7 @@
-from enum import auto
+from enum import StrEnum, auto
 
 from app.blackjack_bot.bot.message_editor import MessageEditor
 from app.blackjack_bot.telegram.dtos import User
-from app.packages.enum_generator import GeneratedStrEnum
 from app.packages.logger import logger
 
 from .deck import Deck
@@ -16,7 +15,7 @@ from .store import BlackjackStore
 from .timer import Timer
 
 
-class GameState(GeneratedStrEnum):
+class GameState(StrEnum):
     registration = auto()
     betting = auto()
     playing = auto()

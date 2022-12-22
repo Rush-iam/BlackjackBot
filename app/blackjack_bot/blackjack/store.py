@@ -75,6 +75,7 @@ class BlackjackStore(DatabaseAccessor):
     async def get_top_players(
         self, chat_id: int | None = None, limit: int = 10
     ) -> list[Player]:
+        players = []
         async with self.session() as db:
             if chat_id is None:
                 result = await db.execute(
@@ -82,10 +83,11 @@ class BlackjackStore(DatabaseAccessor):
                 )
                 players = result.scalars().all()
             else:
-                chat = await db.get(
+                chat: ChatModel | None = await db.get(
                     ChatModel, chat_id, [selectinload(ChatModel.players)]
                 )
-                players = chat.players
+                if chat is not None:
+                    players = chat.players
 
             return sorted(
                 (

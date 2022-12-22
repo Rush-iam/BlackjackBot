@@ -1,12 +1,10 @@
-from enum import auto
-
-from app.packages.enum_generator import GeneratedStrEnum
+from enum import StrEnum, auto
 
 
 API_URL = 'https://api.telegram.org/bot'
 
 
-class TelegramMethod(GeneratedStrEnum):
+class TelegramMethod(StrEnum):
     getMe = auto()
     getUpdates = auto()
     sendMessage = auto()
@@ -15,7 +13,7 @@ class TelegramMethod(GeneratedStrEnum):
     answerCallbackQuery = auto()
 
 
-class MessageEntityType(GeneratedStrEnum):
+class MessageEntityType(StrEnum):
     mention = auto()
     hashtag = auto()
     cashtag = auto()
@@ -34,7 +32,7 @@ class MessageEntityType(GeneratedStrEnum):
     custom_emoji = auto()
 
 
-class ChatType(GeneratedStrEnum):
+class ChatType(StrEnum):
     private = auto()
     group = auto()
     supergroup = auto()
