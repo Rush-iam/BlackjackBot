@@ -18,12 +18,13 @@ async def log_error(response: ClientResponse) -> None:
         data = await response.json()
         error = TelegramResponse(**data)
         logger.error(
-            '%d %s (extra: %s)',
+            '%d %s (extra: %s, %s)',
             error.error_code,
             error.description,
             error.parameters,
+            response.real_url,
         )
     except (ContentTypeError, JSONDecodeError) as exc:
         data = await response.text()
-        logger.error('%s, %s', exc, data)
+        logger.error('%s, %s, %s', exc, data, response.real_url)
         await asyncio.sleep(1)
